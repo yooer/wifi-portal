@@ -1,0 +1,43 @@
+# iKuai WiFi Custom Portal Server Configuration
+
+# 服务器监听端口
+port: 8080
+
+# 爱快参数配置
+ikuai:
+  # 云平台生成的 appkey
+  app_key: "your_ikuai_appkey_here"
+  # 自定义认证名称 (审计字段，小于32字节)
+  custom_name: "ikuai_sms_wifi"
+
+# 短信发送商配置 (可选: mock | aliyun | tencent)
+sms:
+  provider: "mock" # 本地测试建议使用 mock，会在服务器控制台直接打印验证码
+  
+  # 阿里云短信配置 (当 provider 为 aliyun 时生效)
+  aliyun:
+    access_key_id: "LTAIxxxxxxxxxxxx"
+    access_key_secret: "xxxxxxxxxxxxxxxxxxxxxxxx"
+    sign_name: "您的短信签名"
+    template_code: "SMS_123456789"
+  
+  # 腾讯云短信配置 (当 provider 为 tencent 时生效)
+  tencent:
+    secret_id: "AKIDxxxxxxxxxxxx"
+    secret_key: "xxxxxxxxxxxxxxxxxxxxxxxx"
+    sdk_app_id: "1400xxxxxx"
+    sign_name: "您的短信签名"
+    template_id: "1234567"
+
+# 安全防刷频率控制
+security:
+  # 单个手机号发送短信的冷却时间 (秒)
+  sms_cooldown: 60
+  # 单个 IP 发送短信的冷却时间 (秒)
+  ip_cooldown: 60
+  # 每个手机号/IP 每日最大允许发送短信次数
+  max_sends_per_day: 5
+  # 验证码有效时长 (分钟)
+  code_expire_minutes: 5
+  # 验证码最大尝试匹配失败次数 (超过后验证码失效)
+  max_attempts: 3

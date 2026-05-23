@@ -1,0 +1,545 @@
+/* WiFi Captive Portal - Apple Minimalist & Glassmorphism Aesthetic Design
+   - Supports both prefers-color-scheme & time-adaptive overrides via .light-theme and .dark-theme
+   - SF Pro UI / Inter fonts
+   - iOS standard 16px input font sizing to prevent unwanted mobile safari zooming
+*/
+
+:root {
+    /* 默认 Light 主题变量 (苹果经典白皙 + 奢华绿调设计) */
+    --apple-bg: linear-gradient(180deg, #f4faf6 0%, #eef7e9 100%);
+    --card-bg: rgba(255, 255, 255, 0.78);
+    --card-border: rgba(0, 0, 0, 0.05);
+    --card-shadow: 0 20px 48px rgba(36, 138, 61, 0.05), 0 4px 12px rgba(0, 0, 0, 0.015);
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --input-bg: rgba(0, 0, 0, 0.035);
+    --input-border: rgba(0, 0, 0, 0.08);
+    --input-focus: #34c759;
+    --input-focus-shadow: rgba(52, 199, 89, 0.15);
+    --btn-primary-bg: #34c759;
+    --btn-primary-hover: #30b350;
+    --btn-secondary-bg: rgba(52, 199, 89, 0.06);
+    --btn-secondary-color: #34c759;
+    --alert-error-bg: rgba(255, 69, 58, 0.08);
+    --alert-error-border: rgba(255, 69, 58, 0.18);
+    --alert-error-text: #ff3b30;
+    --alert-success-bg: rgba(52, 199, 89, 0.08);
+    --alert-success-border: rgba(52, 199, 89, 0.18);
+    --alert-success-text: #248a3d;
+    --glow-opacity: 0.38;
+    --glow-1: #34c759;
+    --glow-2: #30b0c7;
+    --btn-shadow: rgba(52, 199, 89, 0.22);
+    --brand-shadow: rgba(52, 199, 89, 0.2);
+}
+
+/* 当系统首选深色或激活 .dark-theme 类时切换 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --apple-bg: linear-gradient(180deg, #000000 0%, #161617 100%);
+        --card-bg: rgba(22, 22, 23, 0.75);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+        --text-primary: #f5f5f7;
+        --text-secondary: #86868b;
+        --input-bg: rgba(255, 255, 255, 0.04);
+        --input-border: rgba(255, 255, 255, 0.15);
+        --input-focus: #2997ff;
+        --input-focus-shadow: rgba(41, 151, 255, 0.2);
+        --btn-primary-bg: #0071e3;
+        --btn-primary-hover: #0077ed;
+        --btn-secondary-bg: rgba(255, 255, 255, 0.1);
+        --btn-secondary-color: #2997ff;
+        --alert-error-bg: rgba(255, 69, 58, 0.15);
+        --alert-error-border: rgba(255, 69, 58, 0.3);
+        --alert-error-text: #ff453a;
+        --alert-success-bg: rgba(52, 199, 89, 0.15);
+        --alert-success-border: rgba(52, 199, 89, 0.3);
+        --alert-success-text: #30d158;
+        --glow-opacity: 0.12;
+        --glow-1: #0071e3;
+        --glow-2: #af52de;
+        --btn-shadow: rgba(0, 113, 227, 0.22);
+        --brand-shadow: rgba(0, 113, 227, 0.2);
+    }
+}
+
+/* 显式主题覆盖配置 */
+.light-theme {
+    --apple-bg: linear-gradient(180deg, #f4faf6 0%, #eef7e9 100%);
+    --card-bg: rgba(255, 255, 255, 0.78);
+    --card-border: rgba(0, 0, 0, 0.05);
+    --card-shadow: 0 20px 48px rgba(36, 138, 61, 0.05), 0 4px 12px rgba(0, 0, 0, 0.015);
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --input-bg: rgba(0, 0, 0, 0.035);
+    --input-border: rgba(0, 0, 0, 0.08);
+    --input-focus: #34c759;
+    --input-focus-shadow: rgba(52, 199, 89, 0.15);
+    --btn-primary-bg: #34c759;
+    --btn-primary-hover: #30b350;
+    --btn-secondary-bg: rgba(52, 199, 89, 0.06);
+    --btn-secondary-color: #34c759;
+    --alert-error-bg: rgba(255, 69, 58, 0.08);
+    --alert-error-border: rgba(255, 69, 58, 0.18);
+    --alert-error-text: #ff3b30;
+    --alert-success-bg: rgba(52, 199, 89, 0.08);
+    --alert-success-border: rgba(52, 199, 89, 0.18);
+    --alert-success-text: #248a3d;
+    --glow-opacity: 0.38;
+    --glow-1: #34c759;
+    --glow-2: #30b0c7;
+    --btn-shadow: rgba(52, 199, 89, 0.22);
+    --brand-shadow: rgba(52, 199, 89, 0.2);
+}
+
+.dark-theme {
+    --apple-bg: linear-gradient(180deg, #000000 0%, #161617 100%);
+    --card-bg: rgba(22, 22, 23, 0.75);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+    --text-primary: #f5f5f7;
+    --text-secondary: #86868b;
+    --input-bg: rgba(255, 255, 255, 0.04);
+    --input-border: rgba(255, 255, 255, 0.15);
+    --input-focus: #2997ff;
+    --input-focus-shadow: rgba(41, 151, 255, 0.2);
+    --btn-primary-bg: #0071e3;
+    --btn-primary-hover: #0077ed;
+    --btn-secondary-bg: rgba(255, 255, 255, 0.1);
+    --btn-secondary-color: #2997ff;
+    --alert-error-bg: rgba(255, 69, 58, 0.15);
+    --alert-error-border: rgba(255, 69, 58, 0.3);
+    --alert-error-text: #ff453a;
+    --alert-success-bg: rgba(52, 199, 89, 0.15);
+    --alert-success-border: rgba(52, 199, 89, 0.3);
+    --alert-success-text: #30d158;
+    --glow-opacity: 0.12;
+    --glow-1: #0071e3;
+    --glow-2: #af52de;
+    --btn-shadow: rgba(0, 113, 227, 0.22);
+    --brand-shadow: rgba(0, 113, 227, 0.2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* 消除移动端点击蓝色底色 */
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--apple-bg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-primary);
+    overflow-x: hidden;
+    transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* 背景的极光光环渲染，提供细腻的科技温度 */
+.glow-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.glow-sphere {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: var(--glow-opacity);
+    transition: opacity 0.5s ease;
+}
+
+.sphere-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--glow-1) 0%, transparent 70%);
+    top: -150px;
+    right: -100px;
+    animation: rotateSlow 20s linear infinite;
+}
+
+.sphere-2 {
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, var(--glow-2) 0%, transparent 70%);
+    bottom: -100px;
+    left: -100px;
+    animation: rotateSlow 25s linear infinite reverse;
+}
+
+@keyframes rotateSlow {
+    0% { transform: rotate(0deg) translate(0, 0); }
+    50% { transform: rotate(180deg) translate(30px, -20px); }
+    100% { transform: rotate(360deg) translate(0, 0); }
+}
+
+.portal-wrapper {
+    width: 100%;
+    max-width: 410px;
+    padding: 20px;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+}
+
+/* 经典苹果圆角容器 (极致圆润与细节卡片) */
+.apple-card {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    border-radius: 30px;
+    padding: 28px 24px 36px 24px;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* iOS 拟态弹窗控制拉条与顶部导航栏 */
+.ios-sheet-grabber {
+    width: 36px;
+    height: 5px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 2.5px;
+    margin: -12px auto 6px auto;
+    transition: background 0.3s ease;
+}
+
+.dark-theme .ios-sheet-grabber {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.ios-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px 12px 4px;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 4px;
+}
+
+.ios-header-cancel {
+    font-size: 16px;
+    color: var(--input-focus);
+    font-weight: 400;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.ios-header-cancel:active {
+    opacity: 0.6;
+}
+
+.ios-header-title {
+    font-size: 16.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+}
+
+.ios-header-action {
+    font-size: 16px;
+    color: var(--input-focus);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.ios-header-action.disabled {
+    color: var(--text-secondary);
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.ios-header-action:active:not(.disabled) {
+    opacity: 0.6;
+}
+
+.portal-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 品牌无线标志 (完美的 iOS App Icon Squircle 圆角与拟态投影) */
+.brand-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--btn-primary-bg) 0%, var(--btn-primary-hover) 100%);
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 8px 24px var(--brand-shadow);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-avatar:hover {
+    transform: scale(1.04);
+}
+
+.apple-wifi-svg {
+    width: 30px;
+    height: 30px;
+}
+
+.portal-header h1 {
+    font-size: 21px;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.4px;
+    color: var(--text-primary);
+}
+
+.portal-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-weight: 400;
+    padding: 0 16px;
+}
+
+/* 表单核心区域 */
+.auth-box {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* iOS 经典的 settings-grouped list 表单卡片 */
+.ios-input-group {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.25s ease;
+}
+
+.ios-input-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    transition: background-color 0.25s ease;
+}
+
+.ios-input-row:focus-within {
+    background-color: rgba(0, 0, 0, 0.012);
+}
+
+.dark-theme .ios-input-row:focus-within {
+    background-color: rgba(255, 255, 255, 0.008);
+}
+
+.ios-input-row input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    color: var(--text-primary);
+    padding: 15px 15px 15px 46px;
+    outline: none;
+    font-family: inherit;
+    transition: all 0.25s ease;
+}
+
+.ios-input-row input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.65;
+}
+
+.ios-icon {
+    position: absolute;
+    left: 16px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    transition: color 0.25s ease;
+}
+
+/* 焦点高亮 */
+.ios-input-row input:focus + .ios-icon {
+    color: var(--input-focus);
+}
+
+.ios-input-divider {
+    height: 1px;
+    background: var(--input-border);
+    margin-left: 46px; /* 经典的 iOS 缩进分割线，避开 icon */
+    opacity: 0.85;
+}
+
+/* 验证码输入框的右侧溢出保护 */
+.code-wrapper input {
+    padding-right: 120px;
+}
+
+/* 苹果风格的小巧内嵌式获取按钮 */
+.ios-btn-code {
+    position: absolute;
+    right: 10px;
+    background: var(--btn-secondary-bg);
+    border: none;
+    color: var(--btn-secondary-color);
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ios-btn-code:hover {
+    filter: brightness(0.96);
+}
+
+.ios-btn-code:active:not(:disabled) {
+    transform: scale(0.95);
+    filter: brightness(0.92);
+}
+
+.ios-btn-code:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* iOS 风格的精致圆角提示条 */
+.ios-alert {
+    border-radius: 11px;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    animation: bounceIn 0.33s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+@keyframes bounceIn {
+    0% { opacity: 0; transform: scale(0.96); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.ios-alert.error {
+    background: var(--alert-error-bg);
+    border: 1px solid var(--alert-error-border);
+    color: var(--alert-error-text);
+}
+
+.ios-alert.success {
+    background: var(--alert-success-bg);
+    border: 1px solid var(--alert-success-border);
+    color: var(--alert-success-text);
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-bullet {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: currentColor;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* 主放行按钮 - 高端质感圆角矩形，拥有流畅物理触感 */
+.ios-btn-primary {
+    background: var(--btn-primary-bg);
+    border: none;
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 15.5px;
+    font-size: 15.5px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px var(--btn-shadow);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-top: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.ios-btn-primary:hover {
+    background: var(--btn-primary-hover);
+    transform: translateY(-0.5px);
+    box-shadow: 0 8px 24px var(--btn-shadow);
+}
+
+.ios-btn-primary:active:not(:disabled) {
+    transform: scale(0.97) translateY(0.5px);
+    box-shadow: 0 4px 12px var(--btn-shadow);
+    filter: brightness(0.95);
+}
+
+.ios-btn-primary:disabled {
+    background: #c7c7cc;
+    box-shadow: none;
+    cursor: not-allowed;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-theme .ios-btn-primary:disabled {
+    background: #3a3a3c;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* 页脚样式 */
+.portal-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.portal-footer .terms {
+    color: var(--input-focus);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+}
+
+.portal-footer .terms:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+/* 针对笔记本/宽屏设备的响应式适配，确保居中与精美度不变 */
+@media (min-width: 480px) {
+    .apple-card {
+        padding: 36px 32px 42px 32px;
+    }
+}

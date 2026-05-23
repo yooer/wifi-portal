@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wifi认证系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 登录模块 (亮色苹果风格) -->
+    <div id="login-container" class="login-overlay">
+        <div class="glass-login-card">
+            <h2>⚡ wifi认证系统登录</h2>
+            <p>请输入管理员或商户账户密码登录系统</p>
+            <div class="form-group">
+                <label>账号</label>
+                <input type="text" id="login-user" placeholder="商户手机号/管理员账号">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="login-password" placeholder="请输入密码">
+            </div>
+            <div class="login-alert" id="login-error" style="display:none;">⚠️ 账号或密码错误</div>
+            <button id="btn-login" class="btn-primary">进入控制台</button>
+            <div class="login-links" style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 8px;">
+                <span style="color: var(--text-muted);">没有商户账号？</span>
+                <a href="javascript:void(0)" id="link-goto-register" style="color: var(--primary-accent); text-decoration: none; font-weight: 600;">自助注册新账号 ➔</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册模块 (亮色苹果风格) -->
+    <div id="register-container" class="login-overlay" style="display:none;">
+        <div class="glass-login-card" style="max-width: 440px;">
+            <h2>⚡ 注册自助商户账户</h2>
+            <p>手机短信快速验证，免费注册尊享商户服务</p>
+            <div class="form-group">
+                <label>注册手机号</label>
+                <input type="text" id="reg-phone" placeholder="中国11位手机号">
+            </div>
+            <div class="form-group">
+                <label>验证码</label>
+                <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                    <input type="number" id="reg-code" placeholder="6位数字" style="flex: 1; min-width: 0; margin-bottom: 0;">
+                    <button id="btn-reg-send-code" class="btn-secondary" style="font-size: 12px; padding: 12px 16px; white-space: nowrap; height: 100%;">获取验证码</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>设置密码</label>
+                <input type="password" id="reg-password" placeholder="至少6位长度密码">
+            </div>
+            <div class="form-group">
+                <label>确认密码</label>
+                <input type="password" id="reg-confirm-password" placeholder="请再次输入密码">
+            </div>
+            <div class="login-alert" id="reg-error" style="display:none; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); color: var(--error-glow);">⚠️ 账号或密码错误</div>
+            <button id="btn-register-submit" class="btn-primary">立即注册并登录</button>
+            <div class="login-links" style="display: flex; justify-content: center; font-size: 13px; margin-top: 8px;">
+                <a href="javascript:void(0)" id="link-goto-login" style="color: var(--text-muted); text-decoration: none;">已有商户账号？立即登录控制台</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 顶部导航与主界面 -->
+    <div id="app-container" style="display:none;" class="dashboard-layout">
+        <!-- 顶部水平导航栏 -->
+        <header class="top-navbar">
+            <nav class="nav-menu">
+                <!-- 头部Logo放置于 nav-menu 最左侧，文字简短 -->
+                <div class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <div class="logo-text">
+                        <h3>wifi认证系统</h3>
+                    </div>
+                </div>
+
+                <!-- 导航主菜单项 -->
+                <button class="nav-item active" data-tab="dashboard">业务大屏</button>
+                <button class="nav-item" data-tab="hotels">酒店管理</button>
+                <button class="nav-item" data-tab="order-packages">订购短信包</button>
+                <button class="nav-item" data-tab="audit-logs">审计日志</button>
+                <button class="nav-item" data-tab="sms-logs">短信明细</button>
+                <button class="nav-item" data-tab="recharge-logs">账单记录</button>
+                
+                <!-- 超级管理员独享菜单 -->
+                <div class="admin-divider" id="admin-divider" style="display:none;"></div>
+                <button class="nav-item admin-only" data-tab="super-users" style="display:none;">商户账号</button>
+                <button class="nav-item admin-only" data-tab="super-packages" style="display:none;">套餐维护</button>
+                <button class="nav-item admin-only" data-tab="super-sms-providers" style="display:none;">短信通道</button>
+
+                <!-- 用户注销与状态区放置于 nav-menu 最右侧 -->
+                <div class="sidebar-footer-nav">
+                    <div class="user-info">
+                        <p id="current-user-name">账号: -</p>
+                        <span id="current-user-level" class="badge">商户</span>
+                    </div>
+                    <button id="btn-logout" class="btn-logout" title="退出系统">➔</button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- 主面板 -->
+        <main class="main-content">
+            <!-- 头部大标题 -->
+            <header class="main-header">
+                <div class="pane-header">
+                    <h2 id="tab-title">业务大屏</h2>
+                    <p id="tab-subtitle">多节点负载均衡接口网关，确保服务高可用</p>
+                </div>
+                <div class="wallet-status">
+                    <div class="wallet-item">
+                        <span class="label">短信余量</span>
+                        <span class="value" id="wallet-sms">0 条</span>
+                    </div>
+                    <div class="wallet-item" style="border-left: 1px solid var(--border-color); padding-left: 20px;">
+                        <span class="label">账户余额</span>
+                        <span class="value text-accent" id="wallet-balance">0.00 元</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 选项卡内容区 -->
+            <!-- 1. 业务大屏 -->
+            <section class="tab-pane active" id="pane-dashboard">
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>酒店节点总数</h3>
+                        <p id="stat-hotels">0 个</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>WiFi 连接次数</h3>
+                        <p id="stat-auths">0 次</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>累计发送验证码</h3>
+                        <p id="stat-sms">0 次</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-details">
+                    <div class="details-card">
+                        <div class="card-header">
+                            <div class="card-icon-box bg-purple">📊</div>
+                            <div class="card-title-text">
+                                <h4>系统公告与使用说明</h4>
+                                <p>WiFi Captive Portal SaaS 统一计费调度体系</p>
+                            </div>
+                        </div>
+                        <div class="announcement-content" style="margin-top: 16px;">
+                            <p>欢迎使用 WiFi Captive Portal SaaS 计费运营系统。</p>
+                            <p><strong>1. 统一设备对接：</strong> 无论您的网关是爱快、Panabit 还是 MikroTik，都请在设备后台将“自定义 Portal URL”统一配置为：<code class="code-highlight" id="portal-config-url-example">http://[当前域名]/hotel/[您的HotelId]</code></p>
+                            <p><strong>2. 双层扣费体系：</strong> 系统会自动优先从您的【短信余量】扣除。当套餐用尽，会自动按照单价 0.06元/条（6分）扣除【账户余额】。当两者皆不足时，连网页面将拦截发送并提醒您充值。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. 酒店管理 -->
+            <section class="tab-pane" id="pane-hotels">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-purple">🏨</div>
+                        <div class="card-title-text">
+                            <h4>酒店及认证网关列表</h4>
+                            <p>管理所有注册的酒店节点，支持一键配置接口对接参数</p>
+                        </div>
+                    </div>
+                    <div class="action-bar" style="margin-top: 16px;">
+                        <div style="display: flex; align-items: center; gap: 16px; flex-grow: 1;">
+                            <h3>网关节点明细</h3>
+                            <input type="text" id="hotel-search-input" placeholder="搜索酒店名称 / ID..." style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 13px; max-width: 260px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary-accent)'" onblur="this.style.borderColor='#cbd5e1'">
+                        </div>
+                        <button class="btn-primary" id="btn-add-hotel">＋ 新增酒店节点</button>
+                    </div>
+                    <div style="overflow-x: auto; margin-top: 12px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>酒店ID</th>
+                                    <th>酒店名称</th>
+                                    <th>对接地址</th>
+                                    <th>网关驱动</th>
+                                    <th>对接标识</th>
+                                    <th>二次免密</th>
+                                    <th>迎宾问候语</th>
+                                    <th>归属商户</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hotels-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar" id="hotels-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                        <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 订购短信包 -->
+            <section class="tab-pane" id="pane-order-packages">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-orange">🛒</div>
+                        <div class="card-title-text">
+                            <h4>商城热销短信套餐包</h4>
+                            <p>自主订购，余额原子扣减，秒级生效，价格极其优惠</p>
+                        </div>
+                    </div>
+                    <div class="packages-grid" id="packages-shop-list" style="margin-top: 24px;"></div>
+                </div>
+            </section>
+
+            <!-- 4. 连网审计日志 -->
+            <section class="tab-pane" id="pane-audit-logs">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-blue">📝</div>
+                        <div class="card-title-text">
+                            <h4>访客终端 WiFi 放行审计日志</h4>
+                            <p>符合公共安全联网审计标准，记录终端 MAC 手机号信息（默认最近 100 条）</p>
+                        </div>
+                    </div>
+                    <div class="action-bar" style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
+                            <h3>审计日志流水</h3>
+                            <select id="audit-hotel-filter" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;">
+                                <option value="">全部酒店</option>
+                            </select>
+                            <input type="text" id="audit-search-input" placeholder="搜索手机号 / MAC / IP..." style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 13px; max-width: 280px; width: 100%; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary-accent)'" onblur="this.style.borderColor='#cbd5e1'">
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto; margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>关联酒店ID</th>
+                                    <th>访客手机号</th>
+                                    <th>MAC地址</th>
+                                    <th>分配IP</th>
+                                    <th>状态</th>
+                                    <th>放行时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-logs-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar" id="audit-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                        <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. 短信账单明细 -->
+            <section class="tab-pane" id="pane-sms-logs">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-blue">💬</div>
+                        <div class="card-title-text">
+                            <h4>商户短信消耗明细明细</h4>
+                            <p>账单完全透明，支持查询每一笔短信费用流向</p>
+                        </div>
+                    </div>
+                    <div class="action-bar" style="margin-top: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
+                            <h3>短信明细流水</h3>
+                            <select id="sms-hotel-filter" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;">
+                                <option value="">全部酒店</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto; margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>关联酒店ID</th>
+                                    <th class="col-user" style="display:none;">所属商户</th>
+                                    <th>接收手机号</th>
+                                    <th>分配IP</th>
+                                    <th>扣费类型</th>
+                                    <th>扣除套餐条数</th>
+                                    <th>扣除余额 (元)</th>
+                                    <th>投递渠道</th>
+                                    <th>验证时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sms-logs-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar" id="sms-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                        <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. 充值购买记录 -->
+            <section class="tab-pane" id="pane-recharge-logs">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-blue">💳</div>
+                        <div class="card-title-text">
+                            <h4>订单及充值对账流水</h4>
+                            <p>系统自动生成高可信 ULID 订单号，支持历史订单对账查询</p>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto; margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ULID 订单号</th>
+                                    <th>商户账号</th>
+                                    <th>充值类型</th>
+                                    <th>金额 (元)</th>
+                                    <th>获得短信条数</th>
+                                    <th>订购套餐名</th>
+                                    <th>交易时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recharge-logs-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar" id="recharge-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                        <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. 超管专区: 商户账号管理 -->
+            <section class="tab-pane" id="pane-super-users">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-purple">👥</div>
+                        <div class="card-title-text">
+                            <h4>系统商户账号及钱包管理</h4>
+                            <p>系统超级管理员专属模块，支持全局资金划拨与套餐赠送</p>
+                        </div>
+                    </div>
+                    <div class="action-bar" style="margin-top: 16px;">
+                        <h3>商户账户明细</h3>
+                        <button class="btn-primary" id="btn-add-user">＋ 创建新商户</button>
+                    </div>
+                    <div style="overflow-x: auto; margin-top: 12px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>商户账号 (手机)</th>
+                                    <th>权限级别</th>
+                                    <th>账户余额</th>
+                                    <th>剩余短信数</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="super-users-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. 超管专区: 套餐配置配置 -->
+            <section class="tab-pane" id="pane-super-packages">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-orange">⚙️</div>
+                        <div class="card-title-text">
+                            <h4>SaaS 短信购买套餐规则维护</h4>
+                            <p>自由配置多档短信套餐包的价格及对应条数，调整后全网秒级同步上架</p>
+                        </div>
+                    </div>
+                    <div class="action-bar" style="margin-top: 16px;">
+                        <h3>套餐规则明细</h3>
+                        <button class="btn-primary" id="btn-add-package">＋ 新建充值套餐</button>
+                    </div>
+                    <div style="overflow-x: auto; margin-top: 12px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>套餐ID</th>
+                                    <th>套餐名称</th>
+                                    <th>套餐价格 (分)</th>
+                                    <th>获得短信数</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="super-packages-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. 超管专区: 短信通道池配置 -->
+            <section class="tab-pane" id="pane-super-sms-providers">
+                <div class="table-container">
+                    <div class="card-header">
+                        <div class="card-icon-box bg-green">⚙️</div>
+                        <div class="card-title-text">
+                            <h4>系统短信通道及加权配置</h4>
+                            <p>多通道负载均衡，确保验证码发送服务高可用、高送达</p>
+                        </div>
+                    </div>
+                    <div class="action-bar" style="margin-top: 16px;">
+                        <h3>短信通道节点明细</h3>
+                        <button class="btn-primary" id="btn-add-sms-provider">＋ 新建短信通道</button>
+                    </div>
+                    <div style="overflow-x: auto; margin-top: 12px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>通道类型 (Provider)</th>
+                                    <th>发送权重 (Weight)</th>
+                                    <th>状态 (Status)</th>
+                                    <th>主要配置参数 (Config)</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="super-sms-providers-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 各类弹窗模态框 -->
+    <!-- 1. 新增/编辑酒店商户 -->
+    <div class="modal" id="modal-hotel" style="display:none;">
+        <div class="modal-content" style="max-width: 540px;">
+            <h3 id="modal-hotel-title">新建酒店</h3>
+            <input type="hidden" id="hotel-form-id">
+            <div class="form-group">
+                <label>酒店名称</label>
+                <input type="text" id="hotel-name-input" placeholder="极光温泉酒店">
+            </div>
+            <div class="form-group">
+                <label>网关类型驱动</label>
+                <select id="hotel-gateway-select">
+                    <option value="ikuai">爱快 (IKuai)</option>
+                    <option value="panabit">Panabit</option>
+                    <option value="mikrotik">MikroTik RouterOS</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>网关接口密钥 (AppKey)</label>
+                <input type="text" id="hotel-appkey-input" placeholder="输入对接密钥">
+            </div>
+            <div class="form-group">
+                <label>对接标识 (CustomName)</label>
+                <input type="text" id="hotel-custom-input" placeholder="输入路由器标识">
+                <div class="form-help-gray">输入 IP 或域名，无需填写 http:// 前缀</div>
+            </div>
+            <div class="form-group">
+                <label>个性化迎宾问候语</label>
+                <input type="text" id="hotel-welcome-input" placeholder="欢迎光临！">
+            </div>
+            <div class="form-row-three" style="display: flex; gap: 12px; margin-bottom: 16px;">
+                <div class="form-group" style="flex: 1; min-width: 0; margin-bottom: 0;">
+                    <label>短信冷却 (秒)</label>
+                    <input type="number" id="hotel-sms-cooldown-input" placeholder="默认60" value="60" style="width: 100%; min-width: 0;">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 0; margin-bottom: 0;">
+                    <label>IP 冷却 (秒)</label>
+                    <input type="number" id="hotel-ip-cooldown-input" placeholder="默认60" value="60" style="width: 100%; min-width: 0;">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 0; margin-bottom: 0;">
+                    <label>天发送上限 (次)</label>
+                    <input type="number" id="hotel-max-sends-day-input" placeholder="0为不限制" value="0" style="width: 100%; min-width: 0;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>二次免登快捷上网 (免验证码)</label>
+                <select id="hotel-bypass-auth-select">
+                    <option value="0">禁用 - 每次必须输入手机验证码上网</option>
+                    <option value="1">启用 - 同设备及手机首次验证通过后30天免密免短信直连</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>归属商户账号</label>
+                <input type="number" id="hotel-user-input" placeholder="商户手机账号">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-close-hotel-modal">取消</button>
+                <button class="btn-primary" id="btn-save-hotel">确定保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 新增商户模态框 -->
+    <div class="modal" id="modal-user" style="display:none;">
+        <div class="modal-content">
+            <h3>新建系统商户</h3>
+            <div class="form-group">
+                <label>商户账号 (数值/手机号)</label>
+                <input type="number" id="user-account-input" placeholder="19203771919">
+                <div class="form-help-red">手机号作为唯一标识，不可重复</div>
+            </div>
+            <div class="form-group">
+                <label>初始密码</label>
+                <input type="password" id="user-password-input" placeholder="请输入密码">
+            </div>
+            <div class="form-group">
+                <label>权限等级 (Level)</label>
+                <select id="user-level-select">
+                    <option value="10">10 - 酒店商户</option>
+                    <option value="100">100 - 超级管理员</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-close-user-modal">取消</button>
+                <button class="btn-primary" id="btn-save-user">确定创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 超管手动充值钱包模态框 -->
+    <div class="modal" id="modal-recharge" style="display:none;">
+        <div class="modal-content">
+            <h3>手动注资/手动增发套餐</h3>
+            <input type="hidden" id="recharge-user-hidden">
+            <div class="form-group">
+                <label>充值类型</label>
+                <select id="recharge-type-select">
+                    <option value="balance">仅充值其余额 (分/元)</option>
+                    <option value="package">商户订购指定套餐</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>充值金额 (分) [例如 10000 分代表 100 元]</label>
+                <input type="number" id="recharge-amount-input" placeholder="10000">
+            </div>
+            <div class="form-group" id="recharge-sms-group" style="display:none;">
+                <label>短信增发条数 (条)</label>
+                <input type="number" id="recharge-sms-input" placeholder="2200" value="0">
+            </div>
+            <div class="form-group" id="recharge-pkgname-group" style="display:none;">
+                <label>增发套餐附言名称</label>
+                <input type="text" id="recharge-pkgname-input" placeholder="例如: 经典套餐B" value="系统手工赠送">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-close-recharge-modal">取消</button>
+                <button class="btn-primary" id="btn-save-recharge">确定充值</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 新建充值套餐模态框 -->
+    <div class="modal" id="modal-package" style="display:none;">
+        <div class="modal-content">
+            <h3>维护套餐规则</h3>
+            <div class="form-group">
+                <label>套餐ID标识 (packageId)</label>
+                <input type="text" id="pkg-id-input" placeholder="pkg_01">
+            </div>
+            <div class="form-group">
+                <label>套餐名称</label>
+                <input type="text" id="pkg-name-input" placeholder="黄金大容量套餐">
+            </div>
+            <div class="form-group">
+                <label>售价 (分) [例如 5000 代表 50元]</label>
+                <input type="number" id="pkg-price-input" placeholder="5000">
+            </div>
+            <div class="form-group">
+                <label>充入短信额度 (条)</label>
+                <input type="number" id="pkg-sms-input" placeholder="1000">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-close-package-modal">取消</button>
+                <button class="btn-primary" id="btn-save-package">确认保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 新建/编辑短信通道模态框 -->
+    <div class="modal" id="modal-sms-provider" style="display:none;">
+        <div class="modal-content" style="max-width: 520px;">
+            <h3 id="modal-sms-provider-title">维护短信通道</h3>
+            <input type="hidden" id="sms-provider-form-id">
+            <div class="form-group">
+                <label>通道类型 (Provider)</label>
+                <select id="sms-provider-type-select">
+                    <option value="mock">本地模拟通道 (Mock)</option>
+                    <option value="aliyun">阿里云短信通道 (Aliyun)</option>
+                    <option value="tencent">腾讯云短信通道 (Tencent)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>发送权重 (Weight) [0-1000]</label>
+                <input type="number" id="sms-provider-weight-input" placeholder="100" value="100">
+                <div class="form-help-gray">多通道同时开启时，按权重比例分流</div>
+            </div>
+            <div class="form-group">
+                <label>通道状态</label>
+                <select id="sms-provider-status-select">
+                    <option value="1">1 - 启用 (Active)</option>
+                    <option value="0">0 - 禁用 (Disabled)</option>
+                </select>
+            </div>
+            
+            <!-- 动态配置区域，根据所选通道类型动态展示/切换对应字段 -->
+            <div class="sms-config-fields" id="sms-config-mock-fields">
+                <div class="form-group">
+                    <label>默认短信签名 (sign_name)</label>
+                    <input type="text" id="sms-config-mock-signname" placeholder="系统统一认证">
+                </div>
+            </div>
+            
+            <div class="sms-config-fields" id="sms-config-aliyun-fields" style="display:none;">
+                <div class="form-group">
+                    <label>AccessKey ID (access_key_id)</label>
+                    <input type="text" id="sms-config-aliyun-keyid" placeholder="LTAI...">
+                </div>
+                <div class="form-group">
+                    <label>AccessKey Secret (access_key_secret)</label>
+                    <input type="password" id="sms-config-aliyun-secret" placeholder="输入密钥，若留空且已有配置则不修改">
+                </div>
+                <div class="form-group">
+                    <label>默认短信签名 (sign_name)</label>
+                    <input type="text" id="sms-config-aliyun-signname" placeholder="您的阿里云短信签名">
+                </div>
+                <div class="form-group">
+                    <label>模版 Code (template_code)</label>
+                    <input type="text" id="sms-config-aliyun-tplcode" placeholder="SMS_...">
+                </div>
+            </div>
+            
+            <div class="sms-config-fields" id="sms-config-tencent-fields" style="display:none;">
+                <div class="form-group">
+                    <label>Secret ID (secret_id)</label>
+                    <input type="text" id="sms-config-tencent-secretid" placeholder="AKID...">
+                </div>
+                <div class="form-group">
+                    <label>Secret Key (secret_key)</label>
+                    <input type="password" id="sms-config-tencent-secretkey" placeholder="输入密钥，若留空且已有配置则不修改">
+                </div>
+                <div class="form-group">
+                    <label>SDK AppID (sdk_app_id)</label>
+                    <input type="text" id="sms-config-tencent-appid" placeholder="1400...">
+                </div>
+                <div class="form-group">
+                    <label>默认短信签名 (sign_name)</label>
+                    <input type="text" id="sms-config-tencent-signname" placeholder="您的腾讯云短信签名">
+                </div>
+                <div class="form-group">
+                    <label>模版 ID (template_id)</label>
+                    <input type="text" id="sms-config-tencent-tplid" placeholder="输入腾讯云模板ID">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-close-sms-provider-modal">取消</button>
+                <button class="btn-primary" id="btn-save-sms-provider">确认保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

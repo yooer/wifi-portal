@@ -1,0 +1,12 @@
+# Local executable binaries
+*.exe
+check-build.exe
+ikuai-portal.exe
+
+# Local configs and dynamic logs
+config.yaml
+*.log
+
+# Whitelist compiled binaries requested by user
+!wifi.exe
+!wifi

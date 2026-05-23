@@ -1,0 +1,854 @@
+/* WiFi SaaS Admin - Modern Horizontal Light Theme (Emerald Accents) */
+
+:root {
+    --bg-light: #f3f6f9;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+    
+    --primary-accent: #00bfa5; /* Premium Emerald/Teal Green */
+    --primary-gradient: linear-gradient(135deg, #00bfa5, #00b894);
+    --accent-glow: #10b981;
+    --error-glow: #ef4444;
+    
+    --shadow-soft: 0 4px 20px -2px rgba(50, 50, 93, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
+    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-light);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* =========================================================================
+   1. 登录覆盖层样式 (升级为极简高拟真亮色卡片)
+   ========================================================================= */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, #ffffff 0%, #eef2f7 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.glass-login-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 44px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.glass-login-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.glass-login-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: -12px;
+}
+
+.login-alert {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--error-glow);
+    text-align: center;
+    font-weight: 500;
+}
+
+/* =========================================================================
+   2. 顶部水平导航栏布局
+   ========================================================================= */
+.dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* 顶部 Header */
+.top-navbar {
+    width: 100%;
+    height: 72px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.015);
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* 左侧 Logo */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.logo-icon {
+    font-size: 22px;
+    color: #ff7675; /* 橙色调度网格 icon */
+    filter: drop-shadow(0 2px 4px rgba(255, 118, 117, 0.2));
+}
+
+.logo-text h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.4px;
+}
+
+/* 中间导航链接 (主菜单外层大容器) */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 居中所有头部元素在一起 */
+    gap: 28px;
+    height: 100%;
+    width: 100%;
+    flex-grow: 1;
+}
+
+.nav-item {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 24px 2px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s ease;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-accent);
+    transform: scaleX(0);
+    transform-origin: bottom center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item:hover {
+    color: var(--primary-accent);
+}
+
+.nav-item.active {
+    color: var(--primary-accent);
+    font-weight: 600;
+}
+
+.nav-item.active::after {
+    transform: scaleX(1);
+}
+
+.admin-divider {
+    font-size: 10px;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin: 0 4px;
+    padding: 0 4px;
+    border-left: 1px solid var(--border-color);
+    height: 16px;
+    user-select: none;
+}
+
+/* 右侧侧栏页脚整合项 */
+.sidebar-footer-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.user-info {
+    text-align: right;
+}
+
+.user-info p {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.badge {
+    background: rgba(0, 191, 165, 0.08);
+    border: 1px solid rgba(0, 191, 165, 0.25);
+    color: var(--primary-accent);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: rgba(108, 92, 203, 0.08);
+    border-color: rgba(108, 92, 203, 0.25);
+    color: #6c5ce7;
+}
+
+.btn-logout {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-logout:hover {
+    background: rgba(239, 68, 68, 0.05);
+    color: var(--error-glow);
+}
+
+/* =========================================================================
+   3. 主面板排版与容器
+   ========================================================================= */
+.main-content {
+    flex-grow: 1;
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 40px 24px 60px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* 顶部选项卡面包标题 (如 接口代理管理 + 副标题描述) */
+.main-header {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.pane-header h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.8px;
+    margin-bottom: 6px;
+}
+
+.pane-header p {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.wallet-status {
+    display: flex;
+    gap: 28px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    padding: 12px 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+}
+
+.wallet-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.wallet-item .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.wallet-item .value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.text-accent {
+    color: var(--accent-glow) !important;
+}
+
+/* 选项卡面板切换 */
+.tab-pane {
+    display: none;
+    flex-direction: column;
+    gap: 28px;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+   4. 卡片式块与高拟真细节设计
+   ========================================================================= */
+.details-card, .table-container, .card-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* 卡片标题行与高亮微图标块 */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 16px;
+}
+
+.card-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #ffffff;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.bg-purple { background: #6c5ce7; }
+.bg-green { background: #00bfa5; }
+.bg-orange { background: #ff7675; }
+.bg-blue { background: #0984e3; }
+
+.card-title-text h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-title-text p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.action-bar h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+/* 业务大屏统计卡 (卡片化) */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 28px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card h3 {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.stat-card p {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.announcement-content p {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.8;
+    margin-bottom: 12px;
+}
+
+.code-highlight {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 3px 8px;
+    color: #0f172a;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+}
+
+/* =========================================================================
+   5. 数据表格规范化设计
+   ========================================================================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th {
+    padding: 14px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 2px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+td {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 13px;
+}
+
+tr:hover td {
+    background: #f8fafc;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-danger {
+    color: var(--error-glow);
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* =========================================================================
+   6. 输入框表单及微控件设计
+   ========================================================================= */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.form-group input, .form-group select {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.form-group input::placeholder {
+    color: #94a3b8;
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.15);
+}
+
+.form-group input:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* 用户指定辅助文字样式 */
+.form-help-red {
+    font-size: 11px;
+    color: #ff7675;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.form-help-gray {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* =========================================================================
+   7. 苹果式开关 (iOS Toggle Switch)
+   ========================================================================= */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+input:checked + .slider {
+    background-color: var(--primary-accent);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* =========================================================================
+   8. 按钮与操作态设计
+   ========================================================================= */
+.btn-primary {
+    background: var(--primary-gradient);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 191, 165, 0.2);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 191, 165, 0.3);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.btn-logout-navbar {
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 8px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-right: 4px;
+}
+
+.btn-sm:hover {
+    border-color: var(--primary-accent);
+    color: var(--primary-accent);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.05) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    color: var(--error-glow) !important;
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: var(--error-glow) !important;
+}
+
+/* =========================================================================
+   9. 套餐购买商城卡片
+   ========================================================================= */
+.packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 28px;
+}
+
+.package-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.package-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary-accent);
+    box-shadow: 0 16px 36px rgba(0, 191, 165, 0.08);
+}
+
+.card-icon {
+    font-size: 32px;
+    color: var(--primary-accent);
+    margin-bottom: 8px;
+}
+
+.package-card h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.package-card .sms-amount {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+}
+
+.package-card .sms-amount span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.package-card .price {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.package-card .price strong {
+    font-size: 22px;
+    color: var(--primary-accent);
+    font-weight: 700;
+}
+
+.package-card .unit-price {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: #f1f5f9;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+/* =========================================================================
+   10. 模态弹出窗 (苹果式圆角遮罩弹框)
+   ========================================================================= */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 36px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.sms-config-fields {
+    border-top: 1px dashed var(--border-color);
+    padding-top: 16px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Toast 微调节 */
+.toast {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+}
+
+/* =========================================================================
+   11. 分页控制微控件样式
+   ========================================================================= */
+.pagination-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover {
+    border-color: var(--primary-accent);
+    color: var(--primary-accent);
+}
+
+.pagination-btn.active {
+    background: var(--primary-gradient);
+    border-color: var(--primary-accent);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 191, 165, 0.25);
+    font-weight: 600;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+}
+
