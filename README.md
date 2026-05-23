@@ -1,4 +1,4 @@
-# ⚡ WiFi Captive Portal SaaS 计费运营系统 (iKuai-Portal)
+# ⚡ WiFi Captive Portal SaaS 计费运营系统 (Wifi-Portal)
 
 本系统是一个基于 **Go (Golang) + MongoDB + Redis** 开发的高可用、高性能商业级多商户 WiFi 热点短信认证 Portal SaaS 平台。支持对接 **爱快 (iKuai)、Panabit、MikroTik** 等主流网络硬件网关，并配备了双层短信计费引擎、多短信通道加权调度与一键级联销户数据清理机制。
 
@@ -97,21 +97,21 @@ security:
 
 ```bash
 # 启动程序（自动执行 MongoDB 索引建立与超管种子数据生成）
-.\ikuai-portal.exe
+.\wifi.exe
 ```
 
 ### 4. Linux 环境运行 (守护进程模式)
 
 ```bash
 # 1. 赋予可执行权限
-chmod +x ./ikuai-portal-linux
+chmod +x ./wifi
 
 # 2. 启用 -d 标志在后台静默运行
-./ikuai-portal-linux -d
+./wifi -d
 # 控制台输出：🚀 成功在后台守护进程模式运行！PID: [子进程PID]
 
 # 3. 验证运行状态
-ps -ef | grep ikuai-portal-linux
+ps -ef | grep wifi
 ```
 
 ---
