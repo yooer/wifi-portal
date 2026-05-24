@@ -9,16 +9,19 @@
 
 ## 约束
 
-- **不提交可执行文件**：确保 `ikuai-portal.exe` 和 `check-build.exe` 被 git 忽略，或不将其添加至提交清单中。
+- **不提交非白名单可执行文件**：确保 `ikuai-portal.exe` 和 `check-build.exe` 被 git 忽略，只有用户要求的 `wifi` 和 `wifi.exe` 可以被提交。
 - **本地敏感信息**：千万不要在 `config.yaml` 提交真实的云服务 AccessKey/Secret；使用 MongoDB 的掩码模式保护。
 - **原子扣费**：任何涉及到扣减 `sms_count` 或 `balance` 的改动，必须使用 MongoDB 的原子操作（如 `$inc` 加以比较过滤），严防高并发下的扣费透支与 Race Condition。
 
 ## 常用命令
 
 ```bash
-# 1. 本地编译
-go build -o ikuai-portal.exe .
+# 1. 本地 Windows 编译
+go build -o wifi.exe .
 
-# 2. 运行服务
-./ikuai-portal.exe
+# 2. 本地 Linux 交叉编译
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o wifi .
+
+# 3. 运行服务
+.\wifi.exe
 ```

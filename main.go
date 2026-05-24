@@ -24,15 +24,10 @@ func main() {
 	// 1. 初始化鉴权密钥系统
 	InitAuth()
 
-	// 2. 加载 YAML 配置文件
+	// 2. 加载 YAML 配置文件 (若不存在则自动以 tools/ikuai-portal/config.yaml 为模板释放)
 	cfg, err := LoadConfig("config.yaml")
 	if err != nil {
-		log.Printf("⚠️ 无法加载 config.yaml，将自动生成默认配置并重试: %v\n", err)
-		// Fallback to default loading if file not found
-		cfg, err = LoadConfig("config.yaml.example")
-		if err != nil {
-			log.Fatalf("❌ 严重错误: 缺失有效的配置文件模板 (%v)", err)
-		}
+		log.Fatalf("❌ 严重错误: 无法加载或自动释放 config.yaml 配置文件 (%v)", err)
 	}
 	log.Printf("⚙️ 配置加载成功，监听端口: %d\n", cfg.Port)
 

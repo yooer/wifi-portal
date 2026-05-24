@@ -75,44 +75,61 @@ tools/ikuai-portal/
 
 ### 2. 配置文件说明
 
-将 `config.yaml.example` 复制为 `config.yaml` 并填写您的 MongoDB 及 Redis 连接串，以及全局短信防刷安全兜底参数：
+系统运行时若检测到本地目录缺失 `config.yaml`，将**自动以正确的结构释放默认配置文件**。您也可以手动将 `config.yaml.example` 复制为 `config.yaml` 进行自定义修改。正确的配置结构如下：
 
 ```yaml
-server:
-  port: ":8080"            # 服务监听端口
+# 服务器监听端口
+port: 8080
 
-database:
-  mongo_uri: "mongodb://localhost:27017"
-  db_name: "ikuai_portal"
-  redis_addr: "localhost:6379"
-  redis_pass: ""
-  redis_db: 0
+# MongoDB 数据库配置
+mongodb:
+  uri: "mongodb://localhost:27017/wifi"
+  db_name: "wifi"
 
+# Redis 缓存配置 (防刷限流与验证码、会话存储)
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+
+# 短信计费规则配置
+sms:
+  # 默认单条扣费价格 (单位: 分。此处 6 代表 0.06 元/条)
+  price_per_sms: 6
+
+# 安全与频率限制配置 (注: 酒店网关的冷却和上限均已改用数据库动态配置，此处仅作为全局默认备份)
 security:
-  sms_cooldown: 60         # 手机号发送短信冷却时间（秒）
-  ip_cooldown: 60          # 单IP发送短信冷却时间（秒）
-  max_sends_day: 10        # 单手机号/IP每日验证码发送上限（次，0为不限）
+  # 单个手机号发送短信的冷却时间 (秒)
+  sms_cooldown: 60
+  # 单个 IP 发送短信的冷却时间 (秒)
+  ip_cooldown: 60
+  # 每个手机号/IP 每日最大允许发送短信次数 (0代表不限制)
+  max_sends_per_day: 5
+  # 验证码有效时长 (分钟，仍为全局配置)
+  code_expire_minutes: 5
+  # 验证码最大尝试匹配失败次数 (超过后验证码失效)
+  max_attempts: 3
 ```
 
 ### 3. Windows 环境运行
 
 ```bash
-# 启动程序（自动执行 MongoDB 索引建立与超管种子数据生成）
-.\wifi.exe
+# 启动程序（自动执行配置文件释放、MongoDB 索引建立与超管种子数据生成）
+.\ikuai-portal.exe
 ```
 
 ### 4. Linux 环境运行 (守护进程模式)
 
 ```bash
 # 1. 赋予可执行权限
-chmod +x ./wifi
+chmod +x ./ikuai-portal
 
 # 2. 启用 -d 标志在后台静默运行
-./wifi -d
+./ikuai-portal -d
 # 控制台输出：🚀 成功在后台守护进程模式运行！PID: [子进程PID]
 
 # 3. 验证运行状态
-ps -ef | grep wifi
+ps -ef | grep ikuai-portal
 ```
 
 ---

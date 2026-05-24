@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -40,6 +41,50 @@ type SecurityConfig struct {
 var GlobalConfig *Config
 
 func LoadConfig(filePath string) (*Config, error) {
+	// If filePath is config.yaml and it does not exist, write the default configuration
+	if filePath == "config.yaml" {
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			log.Println("⚠️ 检测到缺失 config.yaml，正在以 tools/ikuai-portal/config.yaml 为参考自动生成默认配置文件...")
+			defaultConfigContent := `# iKuai/Generic WiFi Captive Portal SaaS Server Configuration
+
+# 服务器监听端口
+port: 8080
+
+# MongoDB 数据库配置
+mongodb:
+  uri: "mongodb://wifi:PHeewwjYyWw43ZB5@10.10.10.230:26110/wifi"
+  db_name: "wifi"
+
+# Redis 缓存配置 (防刷限流与验证码、会话存储)
+redis:
+  addr: "10.10.10.230:6379"
+  password: "269898"
+  db: 0
+
+# 短信计费规则配置
+sms:
+  # 默认单条扣费价格 (单位: 分。此处 6 代表 0.06 元/条)
+  price_per_sms: 6
+
+# 安全与频率限制配置 (注: 酒店网关的冷却和上限均已改用数据库动态配置，此处仅作为全局默认备份)
+security:
+  # 单个手机号发送短信的冷却时间 (秒)
+  sms_cooldown: 60
+  # 单个 IP 发送短信的冷却时间 (秒)
+  ip_cooldown: 60
+  # 每个手机号/IP 每日最大允许发送短信次数 (0代表不限制)
+  max_sends_per_day: 5
+  # 验证码有效时长 (分钟，仍为全局配置)
+  code_expire_minutes: 5
+  # 验证码最大尝试匹配失败次数 (超过后验证码失效)
+  max_attempts: 3
+`
+			if errWrite := os.WriteFile(filePath, []byte(defaultConfigContent), 0644); errWrite != nil {
+				return nil, errWrite
+			}
+		}
+	}
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err

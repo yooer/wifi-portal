@@ -1,35 +1,25 @@
-# iKuai WiFi Custom Portal Server Configuration
+# iKuai/Generic WiFi Captive Portal SaaS Server Configuration (Example)
 
 # 服务器监听端口
 port: 8080
 
-# 爱快参数配置
-ikuai:
-  # 云平台生成的 appkey
-  app_key: "your_ikuai_appkey_here"
-  # 自定义认证名称 (审计字段，小于32字节)
-  custom_name: "ikuai_sms_wifi"
+# MongoDB 数据库配置
+mongodb:
+  uri: "mongodb://localhost:27017/wifi"
+  db_name: "wifi"
 
-# 短信发送商配置 (可选: mock | aliyun | tencent)
+# Redis 缓存配置 (防刷限流与验证码、会话存储)
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+
+# 短信计费规则配置
 sms:
-  provider: "mock" # 本地测试建议使用 mock，会在服务器控制台直接打印验证码
-  
-  # 阿里云短信配置 (当 provider 为 aliyun 时生效)
-  aliyun:
-    access_key_id: "LTAIxxxxxxxxxxxx"
-    access_key_secret: "xxxxxxxxxxxxxxxxxxxxxxxx"
-    sign_name: "您的短信签名"
-    template_code: "SMS_123456789"
-  
-  # 腾讯云短信配置 (当 provider 为 tencent 时生效)
-  tencent:
-    secret_id: "AKIDxxxxxxxxxxxx"
-    secret_key: "xxxxxxxxxxxxxxxxxxxxxxxx"
-    sdk_app_id: "1400xxxxxx"
-    sign_name: "您的短信签名"
-    template_id: "1234567"
+  # 默认单条扣费价格 (单位: 分。此处 6 代表 0.06 元/条)
+  price_per_sms: 6
 
-# 安全防刷频率控制 (注: 酒店网关的冷却和上限均已改用数据库动态配置，此处仅作为全局默认备份)
+# 安全与频率限制配置 (注: 酒店网关的冷却和上限均已改用数据库动态配置，此处仅作为全局默认备份)
 security:
   # 单个手机号发送短信的冷却时间 (秒)
   sms_cooldown: 60
@@ -41,4 +31,3 @@ security:
   code_expire_minutes: 5
   # 验证码最大尝试匹配失败次数 (超过后验证码失效)
   max_attempts: 3
-
