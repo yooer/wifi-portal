@@ -215,6 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             showAlert("success", data.message || "验证码发送成功");
             startCooldown(60);
+            codeInput.focus();
         })
         .catch(err => {
             showAlert("error", err.message);
