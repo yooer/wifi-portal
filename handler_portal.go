@@ -282,6 +282,17 @@ func HandleSMSReleaseVerify(w http.ResponseWriter, r *http.Request) {
 // 各网关协议算签适配器引擎 (Drivers)
 // -------------------------------------------------------------
 
+func formatIkuaiMAC(mac string) string {
+	clean := strings.ReplaceAll(mac, "-", "")
+	clean = strings.ReplaceAll(clean, ":", "")
+	clean = strings.ToLower(clean)
+	if len(clean) == 12 {
+		return fmt.Sprintf("%s:%s:%s:%s:%s:%s",
+			clean[0:2], clean[2:4], clean[4:6], clean[6:8], clean[8:10], clean[10:12])
+	}
+	return strings.ToLower(mac)
+}
+
 func calculateGatewayRedirect(hotel *Hotel, phone, mac, ip, clientURL string) (string, error) {
 	// 对 IP / MAC 进行标准规整，去除可能导致 Nginx 400 RFC Strict 字符
 	mac = strings.ReplaceAll(mac, ":", "-")
@@ -290,11 +301,12 @@ func calculateGatewayRedirect(hotel *Hotel, phone, mac, ip, clientURL string) (s
 	switch strings.ToLower(hotel.GatewayType) {
 	case "ikuai":
 		// === 爱快 IKuai 算签算法 ===
+		ikuaiMac := formatIkuaiMAC(mac)
 		ts := strconv.FormatInt(time.Now().UnixMilli(), 10)
 		
 		// 算签公式: md5("user_ip=<ip>&timestamp=<timestamp>&mac=<mac>&upload=0&download=0&key=<app_key>")
 		rawSignStr := fmt.Sprintf("user_ip=%s&timestamp=%s&mac=%s&upload=0&download=0&key=%s",
-			ip, ts, mac, hotel.AppKey)
+			ip, ts, ikuaiMac, hotel.AppKey)
 		
 		hasher := md5.New()
 		hasher.Write([]byte(rawSignStr))
@@ -306,7 +318,7 @@ func calculateGatewayRedirect(hotel *Hotel, phone, mac, ip, clientURL string) (s
 			url.QueryEscape(hotel.CustomName),
 			url.QueryEscape(ip),
 			url.QueryEscape(ts),
-			url.QueryEscape(mac),
+			url.QueryEscape(ikuaiMac),
 			token,
 		)
 		return redirectURL, nil
