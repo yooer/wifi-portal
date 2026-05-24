@@ -301,7 +301,7 @@ func calculateGatewayRedirect(hotel *Hotel, phone, mac, ip, clientURL string) (s
 		token := hex.EncodeToString(hasher.Sum(nil))
 
 		// 构建标准跳转参数 (URL-encode 各个属性，严控非法字符溢出)
-		redirectURL := fmt.Sprintf("http://portal.ikuai8-wifi.com/Action/webauth-up?type=20&user_id=1020004_%s&custom_name=%s&user_ip=%s&timestamp=%s&mac=%s&upload=0&download=0&token=%s&release_type=1",
+		redirectURL := fmt.Sprintf("https://portal.ikuai8-wifi.com/Action/webauth-up?type=20&user_id=1020004_%s&custom_name=%s&user_ip=%s&timestamp=%s&mac=%s&upload=0&download=0&token=%s&release_type=1",
 			phone,
 			url.QueryEscape(hotel.CustomName),
 			url.QueryEscape(ip),
