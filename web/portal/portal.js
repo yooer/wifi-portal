@@ -197,6 +197,9 @@ document.addEventListener("DOMContentLoaded", () => {
         clearAlerts();
         btnSendCode.disabled = true;
         btnSendCode.textContent = "正在发送...";
+        
+        // 利用用户直接点击的同步手势上下文，完美绕过浏览器安全限制，100% 唤起软键盘
+        codeInput.focus();
 
         fetch("/portal/sms/send", {
             method: "POST",
