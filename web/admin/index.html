@@ -605,12 +605,13 @@
                     <option value="mock">本地模拟通道 (Mock)</option>
                     <option value="aliyun">阿里云短信通道 (Aliyun)</option>
                     <option value="tencent">腾讯云短信通道 (Tencent)</option>
+                    <option value="ihuyi">互亿无线短信通道 (Ihuyi)</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>发送权重 (Weight) [0-1000]</label>
-                <input type="number" id="sms-provider-weight-input" placeholder="100" value="100">
-                <div class="form-help-gray">多通道同时开启时，按权重比例分流</div>
+                <label>发送权重 (Weight) [1-10]</label>
+                <input type="number" id="sms-provider-weight-input" placeholder="5" value="5" min="1" max="10">
+                <div class="form-help-gray">多通道同时开启时，按权重比例分流 (范围 1-10)</div>
             </div>
             <div class="form-group">
                 <label>通道状态</label>
@@ -667,6 +668,21 @@
                 <div class="form-group">
                     <label>模版 ID (template_id)</label>
                     <input type="text" id="sms-config-tencent-tplid" placeholder="输入腾讯云模板ID">
+                </div>
+            </div>
+
+            <div class="sms-config-fields" id="sms-config-ihuyi-fields" style="display:none;">
+                <div class="form-group">
+                    <label>API ID (api_id)</label>
+                    <input type="text" id="sms-config-ihuyi-apiid" placeholder="输入互亿无线 API ID">
+                </div>
+                <div class="form-group">
+                    <label>API KEY (api_key)</label>
+                    <input type="password" id="sms-config-ihuyi-apikey" placeholder="输入密钥，若留空且已有配置则不修改">
+                </div>
+                <div class="form-group">
+                    <label>模版 ID (template_id) [选填，不填则采用短信内容直接发送]</label>
+                    <input type="text" id="sms-config-ihuyi-tplid" placeholder="选填，例如：1">
                 </div>
             </div>
             

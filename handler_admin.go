@@ -696,8 +696,8 @@ func HandleSuperSMSProviders(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"error":"解析参数失败"}`, http.StatusBadRequest)
 			return
 		}
-		if p.Provider == "" || p.Weight < 0 {
-			http.Error(w, `{"error":"参数不完整"}`, http.StatusBadRequest)
+		if p.Provider == "" || p.Weight < 1 || p.Weight > 10 {
+			http.Error(w, `{"error":"通道类型不能为空，且发送权重必须在 1-10 之间"}`, http.StatusBadRequest)
 			return
 		}
 		p.ID = primitive.NewObjectID()
@@ -719,8 +719,8 @@ func HandleSuperSMSProviders(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"error":"解析参数失败"}`, http.StatusBadRequest)
 			return
 		}
-		if p.ID.IsZero() {
-			http.Error(w, `{"error":"缺少通道ID"}`, http.StatusBadRequest)
+		if p.ID.IsZero() || p.Weight < 1 || p.Weight > 10 {
+			http.Error(w, `{"error":"通道ID不能为空，且发送权重必须在 1-10 之间"}`, http.StatusBadRequest)
 			return
 		}
 		

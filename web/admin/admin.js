@@ -842,7 +842,8 @@ async function loadSuperSMSProviders() {
             const typeBadge = {
                 'mock': '<span class="badge" style="background: rgba(100, 116, 139, 0.08); border-color: rgba(100, 116, 139, 0.25); color: var(--text-muted);">模拟通道 (Mock)</span>',
                 'aliyun': '<span class="badge" style="background: rgba(255, 118, 117, 0.08); border-color: rgba(255, 118, 117, 0.25); color: #ff7675;">阿里云短信 (Aliyun)</span>',
-                'tencent': '<span class="badge" style="background: rgba(9, 132, 227, 0.08); border-color: rgba(9, 132, 227, 0.25); color: #0984e3;">腾讯云短信 (Tencent)</span>'
+                'tencent': '<span class="badge" style="background: rgba(9, 132, 227, 0.08); border-color: rgba(9, 132, 227, 0.25); color: #0984e3;">腾讯云短信 (Tencent)</span>',
+                'ihuyi': '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: #10b981;">互亿无线 (Ihuyi)</span>'
             }[p.provider] || `<span class="badge">${p.provider}</span>`;
 
             tr.innerHTML = `
@@ -1504,7 +1505,7 @@ function openAddSMSProviderModal() {
     // 默认值
     document.getElementById('sms-provider-type-select').value = 'mock';
     document.getElementById('sms-provider-type-select').disabled = false;
-    document.getElementById('sms-provider-weight-input').value = '100';
+    document.getElementById('sms-provider-weight-input').value = '5';
     document.getElementById('sms-provider-status-select').value = '1';
     
     // 清空配置项
@@ -1522,6 +1523,11 @@ function openAddSMSProviderModal() {
     document.getElementById('sms-config-tencent-appid').value = '';
     document.getElementById('sms-config-tencent-signname').value = '';
     document.getElementById('sms-config-tencent-tplid').value = '';
+
+    document.getElementById('sms-config-ihuyi-apiid').value = '';
+    document.getElementById('sms-config-ihuyi-apikey').value = '';
+    document.getElementById('sms-config-ihuyi-apikey').placeholder = '输入密钥 (APIKEY)';
+    document.getElementById('sms-config-ihuyi-tplid').value = '';
     
     toggleSMSProviderConfigFields('mock');
     document.getElementById('modal-sms-provider').style.display = 'flex';
@@ -1560,6 +1566,11 @@ window.openEditSMSProviderModal = function(id) {
         document.getElementById('sms-config-tencent-appid').value = cfg.sdk_app_id || '';
         document.getElementById('sms-config-tencent-signname').value = cfg.sign_name || '';
         document.getElementById('sms-config-tencent-tplid').value = cfg.template_id || '';
+    } else if (provider.provider === 'ihuyi') {
+        document.getElementById('sms-config-ihuyi-apiid').value = cfg.api_id || '';
+        document.getElementById('sms-config-ihuyi-apikey').value = '';
+        document.getElementById('sms-config-ihuyi-apikey').placeholder = '****** (留空表示不修改已有密钥)';
+        document.getElementById('sms-config-ihuyi-tplid').value = cfg.template_id || '';
     }
     
     document.getElementById('modal-sms-provider').style.display = 'flex';
@@ -1572,8 +1583,8 @@ async function saveSMSProvider() {
     const weightVal = parseInt(document.getElementById('sms-provider-weight-input').value, 10);
     const statusVal = parseInt(document.getElementById('sms-provider-status-select').value, 10);
     
-    if (isNaN(weightVal) || weightVal < 0) {
-        showToast('⚠️ 发送权重必须为不小于 0 的整数', 'danger');
+    if (isNaN(weightVal) || weightVal < 1 || weightVal > 10) {
+        showToast('⚠️ 发送权重必须为 1-10 之间的整数', 'danger');
         return;
     }
     
@@ -1636,6 +1647,28 @@ async function saveSMSProvider() {
         config.secret_key = secretkey;
         config.sdk_app_id = appid;
         config.sign_name = sign;
+        config.template_id = tpl;
+    } else if (providerType === 'ihuyi') {
+        const apiid = document.getElementById('sms-config-ihuyi-apiid').value.trim();
+        let apikey = document.getElementById('sms-config-ihuyi-apikey').value;
+        const tpl = document.getElementById('sms-config-ihuyi-tplid').value.trim();
+        
+        if (!apiid) {
+            showToast('⚠️ 请填写互亿无线 API ID', 'danger');
+            return;
+        }
+        
+        if (!state.isEditingSMSProvider && !apikey) {
+            showToast('⚠️ 新建通道必须输入密钥', 'danger');
+            return;
+        }
+        
+        if (state.isEditingSMSProvider && !apikey) {
+            apikey = "******";
+        }
+        
+        config.api_id = apiid;
+        config.api_key = apikey;
         config.template_id = tpl;
     }
     

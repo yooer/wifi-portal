@@ -104,7 +104,7 @@ type SMSLog struct {
 
 type SMSProvider struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Provider  string             `bson:"provider" json:"provider"` // "aliyun" | "tencent" | "mock"
+	Provider  string             `bson:"provider" json:"provider"` // "aliyun" | "tencent" | "ihuyi" | "mock"
 	Weight    int32              `bson:"weight" json:"weight"`
 	Config    map[string]string  `bson:"config" json:"config"`
 	Status    int32              `bson:"status" json:"status"` // 1:启用, 0:禁用
@@ -296,7 +296,7 @@ func seedDatabase(ctx context.Context) error {
 	if err == nil && count == 0 {
 		mockProvider := SMSProvider{
 			Provider:  "mock",
-			Weight:    100,
+			Weight:    10,
 			Status:    1,
 			Config:    map[string]string{"sign_name": "系统统一认证"},
 			CreatedAt: time.Now(),
@@ -305,7 +305,7 @@ func seedDatabase(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		log.Println("🌱 初始化本地 Mock 短信发送通道 (默认权重 100)")
+		log.Println("🌱 初始化本地 Mock 短信发送通道 (默认权重 10)")
 	}
 
 	return nil

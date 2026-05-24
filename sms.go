@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -154,6 +156,80 @@ func (t *TencentSender) SendSMS(phone, code, signName string) error {
 	fmt.Printf("📱 目标手机号: %s\n", phone)
 	fmt.Printf("💬 验证码内容: %s (5分钟内有效)\n", code)
 	fmt.Printf("============================================\n\n")
+	return nil
+}
+
+// ==========================================
+// 4. 互亿无线短信通道
+// ==========================================
+type IhuyiSender struct {
+	APIID      string
+	APIKEY     string
+	TemplateID string
+}
+
+func (i *IhuyiSender) SendSMS(phone, code, signName string) error {
+	if i.APIID == "" || i.APIKEY == "" {
+		return fmt.Errorf("互亿无线短信参数未配置")
+	}
+
+	var content string
+	v := url.Values{}
+	v.Set("account", i.APIID)
+
+	if i.TemplateID != "" {
+		content = code
+		v.Set("templateid", i.TemplateID)
+	} else {
+		// 完整内容发送方式
+		content = fmt.Sprintf("您的验证码是：%s。请不要把验证码泄露给其他人。", code)
+	}
+
+	timestamp := time.Now().Unix()
+	timestampStr := fmt.Sprintf("%d", timestamp)
+
+	// 动态密码公式: md5(account + APIKEY + mobile + content + time)
+	hasher := md5.New()
+	hasher.Write([]byte(i.APIID + i.APIKEY + phone + content + timestampStr))
+	md5Password := hex.EncodeToString(hasher.Sum(nil))
+
+	v.Set("password", md5Password)
+	v.Set("mobile", phone)
+	v.Set("content", content)
+	v.Set("time", timestampStr)
+
+	body := strings.NewReader(v.Encode())
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest("POST", "https://api.ihuyi.com/sms/Submit.json", body)
+	if err != nil {
+		return fmt.Errorf("创建互亿无线请求失败: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("请求互亿无线短信服务失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("读取互亿无线响应数据失败: %v", err)
+	}
+
+	var result struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+	}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return fmt.Errorf("解析互亿无线响应失败: %v, body: %s", err, string(respBody))
+	}
+
+	if result.Code != 2 {
+		return fmt.Errorf("互亿无线短信发送失败: [%d] %s", result.Code, result.Msg)
+	}
+
 	return nil
 }
 
@@ -308,6 +384,12 @@ func selectSMSProvider(ctx context.Context) (string, SMSSender, error) {
 			SecretKey:  chosen.Config["secret_key"],
 			SDKAppID:   chosen.Config["sdk_app_id"],
 			SignName:   chosen.Config["sign_name"],
+			TemplateID: chosen.Config["template_id"],
+		}
+	case "ihuyi":
+		sender = &IhuyiSender{
+			APIID:      chosen.Config["api_id"],
+			APIKEY:     chosen.Config["api_key"],
 			TemplateID: chosen.Config["template_id"],
 		}
 	default:
