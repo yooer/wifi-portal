@@ -44,6 +44,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const alertSuccess = document.getElementById("alert-success");
     const successMsg = document.getElementById("success-msg");
 
+    // === WebOTP API 自动读取并填入短信验证码 (同时支持 Android & iOS 14+ WebOTP API) ===
+    if ('OTPCredential' in window) {
+        const ac = new AbortController();
+        navigator.credentials.get({
+            otp: { transport: ['sms'] },
+            signal: ac.signal
+        }).then(otp => {
+            if (otp && otp.code) {
+                codeInput.value = otp.code;
+                syncIosHeaderActionState();
+                showAlert("success", "已为您自动提取并填入短信验证码！");
+                // 自动点击连网放行
+                setTimeout(() => {
+                    btnConnect.click();
+                }, 600);
+            }
+        }).catch(err => {
+            console.log("WebOTP API 监听取消或暂不支持: ", err);
+        });
+
+        // 页面关闭或切走时释放 WebOTP 信号，防止内存泄露
+        window.addEventListener("unload", () => {
+            ac.abort();
+        });
+    }
+
     // iOS 顶栏拟态交互映射
     const navCancelBtn = document.querySelector(".ios-header-cancel");
     const navActionBtn = document.getElementById("nav-connect-text");
