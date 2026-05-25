@@ -462,8 +462,8 @@ table {
 }
 
 th {
-    padding: 10px 12px;
-    font-size: 11px;
+    padding: 6px 8px;
+    font-size: 10.5px;
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-muted);
@@ -473,10 +473,10 @@ th {
 }
 
 td {
-    padding: 10px 12px;
+    padding: 6px 8px;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
-    font-size: 12px;
+    font-size: 11px;
     white-space: nowrap;
 }
 
