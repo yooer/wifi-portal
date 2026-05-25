@@ -30,6 +30,7 @@ services:
 
   wifi-portal:
     build: .
+    image: wifi-portal:latest
     container_name: wifi-portal
     restart: unless-stopped
     ports:
