@@ -1,0 +1,20 @@
+port: 8080
+
+mongodb:
+  uri: "mongodb://mongodb:27017/wifi"
+  db_name: "wifi"
+
+redis:
+  addr: "redis:6379"
+  password: ""
+  db: 0
+
+sms:
+  price_per_sms: 6
+
+security:
+  sms_cooldown: 60
+  ip_cooldown: 60
+  max_sends_per_day: 5
+  code_expire_minutes: 5
+  max_attempts: 3
