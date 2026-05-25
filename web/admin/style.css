@@ -462,7 +462,7 @@ table {
 }
 
 th {
-    padding: 14px 16px;
+    padding: 10px 12px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -473,10 +473,10 @@ th {
 }
 
 td {
-    padding: 16px;
+    padding: 10px 12px;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
-    font-size: 13px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
@@ -656,9 +656,9 @@ input:checked + .slider:before {
 }
 
 .btn-sm {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 10.5px;
     border: 1px solid #e2e8f0;
     background: #ffffff;
     color: #475569;

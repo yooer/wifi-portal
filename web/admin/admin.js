@@ -334,32 +334,31 @@ function renderHotels() {
         const tr = document.createElement('tr');
         
         const driverBadge = {
-            'ikuai': '<span class="badge" style="background: rgba(9, 132, 227, 0.08); border-color: rgba(9, 132, 227, 0.25); color: #0984e3;">爱快 IKuai</span>',
+            'ikuai': '<span class="badge" style="background: rgba(9, 132, 227, 0.08); border-color: rgba(9, 132, 227, 0.25); color: #0984e3;">爱快</span>',
             'panabit': '<span class="badge" style="background: rgba(108, 92, 203, 0.08); border-color: rgba(108, 92, 203, 0.25); color: #6c5ce7;">Panabit</span>',
             'mikrotik': '<span class="badge" style="background: rgba(225, 112, 85, 0.08); border-color: rgba(225, 112, 85, 0.25); color: #e17055;">MikroTik</span>'
         }[h.gateway_type] || `<span class="badge">${h.gateway_type}</span>`;
 
         const bypassBadge = h.bypass_auth === 1 
-            ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">已启用 (30天)</span>'
-            : '<span class="badge" style="background: rgba(100, 116, 139, 0.08); border-color: rgba(100, 116, 139, 0.25); color: var(--text-muted);">已禁用</span>';
+            ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">启用(30天)</span>'
+            : '<span class="badge" style="background: rgba(100, 116, 139, 0.08); border-color: rgba(100, 116, 139, 0.25); color: var(--text-muted);">禁用</span>';
         
         tr.innerHTML = `
             <td><strong>${h.hotelId}</strong></td>
             <td><strong>${escapeHTML(h.name)}</strong></td>
             <td>
-                <button class="btn-sm" style="border-color: var(--primary-accent); color: var(--primary-accent); cursor: pointer;" onclick="copyPortalUrl(${h.hotelId})" title="点击复制对接 Portal URL">📋 对接地址</button>
+                <button class="btn-sm" style="border-color: var(--primary-accent); color: var(--primary-accent); cursor: pointer;" onclick="copyPortalUrl(${h.hotelId})" title="点击复制对接 Portal URL">📋 地址</button>
             </td>
             <td>${driverBadge}</td>
             <td><code class="code-highlight">${escapeHTML(h.custom_name || '-')}</code></td>
             <td>${bypassBadge}</td>
-            <td class="text-truncate" style="max-width: 160px;" title="${escapeHTML(h.welcome_text)}">${escapeHTML(h.welcome_text)}</td>
-            <td><span class="badge" style="background: rgba(9, 132, 227, 0.05); border-color: rgba(9, 132, 227, 0.15); color: #0984e3; font-weight: 600;">${h.sms_send_count || 0} 次</span></td>
-            <td><span class="badge" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">${h.auth_success_count || 0} 次</span></td>
-            <td><span class="badge" style="background: rgba(108, 92, 203, 0.05); border-color: rgba(108, 92, 203, 0.15); color: #6c5ce7; font-weight: 600;">${h.auth_bypass_count || 0} 次</span></td>
+            <td><span class="badge" style="background: rgba(9, 132, 227, 0.05); border-color: rgba(9, 132, 227, 0.15); color: #0984e3; font-weight: 600;">${h.sms_send_count || 0}次</span></td>
+            <td><span class="badge" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">${h.auth_success_count || 0}次</span></td>
+            <td><span class="badge" style="background: rgba(108, 92, 203, 0.05); border-color: rgba(108, 92, 203, 0.15); color: #6c5ce7; font-weight: 600;">${h.auth_bypass_count || 0}次</span></td>
             <td>${h.user}</td>
-            <td>${h.status === 1 ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">● 启用</span>' : '<span class="badge" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); color: var(--error-glow);">● 禁用</span>'}</td>
+            <td>${h.status === 1 ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">●启用</span>' : '<span class="badge" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); color: var(--error-glow);">●禁用</span>'}</td>
             <td>
-                <button class="btn-sm" onclick="openEditHotelModal(${h.hotelId})">⚙️ 编辑配置</button>
+                <button class="btn-sm" onclick="openEditHotelModal(${h.hotelId})">⚙️ 编辑</button>
                 <button class="btn-sm btn-danger" onclick="deleteHotel(${h.hotelId})">🗑️ 删除</button>
             </td>
         `;
