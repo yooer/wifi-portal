@@ -54,22 +54,26 @@
 wifi-portal/
 ├── Dockerfile           # 多阶段构建镜像
 ├── docker-compose.yaml # MongoDB + Redis + App 完整部署
-├── tools/ikuai-portal/ # 核心后端代码
-│   ├── main.go
-│   ├── auth.go
-│   ├── database.go
-│   ├── session.go
-│   ├── sms.go
-│   ├── handler_admin.go
-│   ├── handler_portal.go
-│   ├── config.go
-│   ├── config.yaml
-│   └── web/
-│       ├── admin/
-│       └── portal/
-└── web/                # 前端静态资源
-    ├── admin/
-    └── portal/
+├── config.yaml.example # 配置示例
+├── config.docker.yaml  # Docker 环境配置
+├── go.mod / go.sum    # Go 依赖
+├── .gitignore
+├── images/             # 功能截图
+│   ├── login.png
+│   ├── dashboard.png
+│   ├── add_hotel.png
+│   └── portal_*.png
+├── web/                # 前端静态资源
+│   ├── admin/          # 商户控制台 + 超管后台
+│   └── portal/         # Captive Portal 页面
+├── main.go             # 主程序入口
+├── auth.go             # Session 校验、权限中间件
+├── database.go         # MongoDB 驱动、索引初始化
+├── session.go          # Redis 限流、会话管理
+├── sms.go              # 双层扣费、多通道调度
+├── handler_admin.go    # 超管/商户 API
+├── handler_portal.go   # Portal 重定向、OTP 校验
+└── config.go           # 配置解析
 ```
 
 ---
