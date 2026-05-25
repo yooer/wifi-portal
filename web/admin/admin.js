@@ -1568,7 +1568,6 @@ function openAddSMSProviderModal() {
     document.getElementById('sms-config-ihuyi-apikey').placeholder = '输入密钥 (APIKEY)';
     document.getElementById('sms-config-ihuyi-tplid').value = '';
     
-    document.getElementById('sms-config-jingling-userid').value = '';
     document.getElementById('sms-config-jingling-username').value = '';
     document.getElementById('sms-config-jingling-password').value = '';
     document.getElementById('sms-config-jingling-password').placeholder = '输入接口密码';
@@ -1616,7 +1615,6 @@ window.openEditSMSProviderModal = function(id) {
         document.getElementById('sms-config-ihuyi-apikey').placeholder = '****** (留空表示不修改已有密钥)';
         document.getElementById('sms-config-ihuyi-tplid').value = cfg.template_id || '';
     } else if (provider.provider === 'sms_jingling') {
-        document.getElementById('sms-config-jingling-userid').value = cfg.userid || '';
         document.getElementById('sms-config-jingling-username').value = cfg.username || '';
         document.getElementById('sms-config-jingling-password').value = '';
         document.getElementById('sms-config-jingling-password').placeholder = '****** (留空表示不修改已有密码)';
@@ -1720,7 +1718,6 @@ async function saveSMSProvider() {
         config.api_key = apikey;
         config.template_id = tpl;
     } else if (providerType === 'sms_jingling') {
-        const userid = document.getElementById('sms-config-jingling-userid').value.trim();
         const username = document.getElementById('sms-config-jingling-username').value.trim();
         let password = document.getElementById('sms-config-jingling-password').value;
         
@@ -1738,7 +1735,6 @@ async function saveSMSProvider() {
             password = "******";
         }
         
-        config.userid = userid;
         config.username = username;
         config.password = password;
     }

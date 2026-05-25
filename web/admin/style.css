@@ -469,6 +469,7 @@ th {
     color: var(--text-muted);
     border-bottom: 2px solid #e2e8f0;
     background: #f8fafc;
+    white-space: nowrap;
 }
 
 td {
@@ -476,6 +477,7 @@ td {
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
     font-size: 13px;
+    white-space: nowrap;
 }
 
 tr:hover td {
