@@ -48,33 +48,40 @@
 
 ---
 
-## 📂 模块目录结构
+## 📂 项目结构
 
-```text
-tools/ikuai-portal/
-├── main.go               # 系统主程序入口与 -d 守护进程初始化
-├── auth.go               # 基于 Session 的高并发登录态校验与权限中间件
-├── database.go           # MongoDB 数据库驱动、索引检查与种子数据自动初始化
-├── session.go            # Redis 短信频次限流、冷却控制与全局活跃会话管理器
-├── sms.go                # 双层扣费原子交易控制与多通道加权调度发送引擎
-├── handler_admin.go      # 超管/商户资料维护、注资充值、物理级联销户 API 控制器
-├── handler_portal.go     # 网关重定向放行、OTP 验证码校验、快捷免认证 API 控制器
-├── config.go             # YAML 配置文件高扩展解析器
-├── config.yaml           # 本地数据库、Redis 与全局短信冷却参数配置文件
-├── images/               # 核心功能界面高清截图目录
-└── web/                  # 静态资源前端包
-    ├── admin/            # 苹果风格 SaaS 商户控制台与超管运营后台
-    └── portal/           # 访客 Captive Portal 原生连网适配页面
+```
+wifi-portal/
+├── Dockerfile           # 多阶段构建镜像
+├── docker-compose.yaml # MongoDB + Redis + App 完整部署
+├── tools/ikuai-portal/ # 核心后端代码
+│   ├── main.go
+│   ├── auth.go
+│   ├── database.go
+│   ├── session.go
+│   ├── sms.go
+│   ├── handler_admin.go
+│   ├── handler_portal.go
+│   ├── config.go
+│   ├── config.yaml
+│   └── web/
+│       ├── admin/
+│       └── portal/
+└── web/                # 前端静态资源
+    ├── admin/
+    └── portal/
 ```
 
 ---
 
 ## 🛠️ 快速部署与运行
 
-### 1. 前置环境要求
+### 环境要求
 
-* **MongoDB**：用于存储系统持久化账户、酒店节点、财务及连网日志（支持单机或副本集）。
-* **Redis**：用于存储高并发会话 Token、OTP 短信冷却频次记录与临时验证码。
+| 方式 | 要求 |
+| :--- | :--- |
+| **Docker (推荐)** | 仅需 Docker + Docker Compose |
+| **二进制** | MongoDB ≥ 4.4, Redis ≥ 6.0 |
 
 ### 2. 配置文件说明
 
@@ -139,6 +146,43 @@ chmod +x ./wifi
 | `./wifi server restart` | **后台重启服务** | 自动结束运行实例并在后台重新拉起服务。 |
 | `./wifi server status` | **服务运行状态检测** | 智能读取 `wifi.pid` 文件，实时检测进程状态，如果服务未正常运行将自动清理残留进程标记。 |
 | `./wifi server log` | **实时追踪系统日志** | 相当于执行 `tail -f wifi.log`，支持实时滚屏查看系统运行及认证审计的详细日志。 |
+
+### 5. Docker 部署
+
+`docker-compose.yaml` 包含 MongoDB + Redis + App 完整依赖，开箱即用。
+
+```bash
+# 启动全部服务 (MongoDB + Redis + App)
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f wifi-portal
+
+# 停止服务
+docker-compose down
+```
+
+#### 单独构建
+
+```bash
+# 构建镜像
+docker build -t wifi-portal .
+
+# 运行容器 (需自行准备 MongoDB/Redis)
+docker run -d -p 8080:8080 --name wifi-portal wifi-portal
+```
+
+#### 多平台镜像
+
+```bash
+# Linux amd64
+$env:GOOS="linux"; $env:GOARCH="amd64"
+docker build --platform linux/amd64 -t wifi-portal:amd64 .
+
+# Linux arm64
+$env:GOOS="linux"; $env:GOARCH="arm64"
+docker build --platform linux/arm64 -t wifi-portal:arm64 .
+```
 
 ---
 
