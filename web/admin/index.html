@@ -193,6 +193,9 @@
                                     <th>对接标识</th>
                                     <th>二次免密</th>
                                     <th>迎宾问候语</th>
+                                    <th>发送短信</th>
+                                    <th>认证成功</th>
+                                    <th>免密认证</th>
                                     <th>归属商户</th>
                                     <th>状态</th>
                                     <th>操作</th>
@@ -606,6 +609,7 @@
                     <option value="aliyun">阿里云短信通道 (Aliyun)</option>
                     <option value="tencent">腾讯云短信通道 (Tencent)</option>
                     <option value="ihuyi">互亿无线短信通道 (Ihuyi)</option>
+                    <option value="sms_jingling">短信精灵通道 (Jingling)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -683,6 +687,25 @@
                 <div class="form-group">
                     <label>模版 ID (template_id) [选填，不填则采用短信内容直接发送]</label>
                     <input type="text" id="sms-config-ihuyi-tplid" placeholder="选填，例如：1">
+                </div>
+            </div>
+
+            <div class="sms-config-fields" id="sms-config-sms_jingling-fields" style="display:none;">
+                <div style="background: rgba(162, 89, 255, 0.05); border-left: 4px solid #a259ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; width: 100%;">
+                    <span>👉 还没有账号？立即前往注册：</span>
+                    <a href="https://www.282930.cn/" target="_blank" style="color: #a259ff; text-decoration: underline; font-weight: 600;">282930.cn ➔</a>
+                </div>
+                <div class="form-group" style="width: 100%;">
+                    <label>商户 ID (userid) [选填]</label>
+                    <input type="text" id="sms-config-jingling-userid" placeholder="输入短信精灵商户 ID (例如 12345)">
+                </div>
+                <div class="form-group" style="width: 100%;">
+                    <label>账户名 (username)</label>
+                    <input type="text" id="sms-config-jingling-username" placeholder="输入短信精灵账户名">
+                </div>
+                <div class="form-group" style="width: 100%;">
+                    <label>接口密码 (password)</label>
+                    <input type="password" id="sms-config-jingling-password" placeholder="输入接口密码，若留空且已有配置则不修改">
                 </div>
             </div>
             

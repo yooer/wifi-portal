@@ -25,6 +25,11 @@ type SMSSender interface {
 	SendSMS(phone, code, signName string) error
 }
 
+// BalanceQuerier 定义支持查询账户余额的短信通道接口
+type BalanceQuerier interface {
+	QueryBalance() (string, error)
+}
+
 // ==========================================
 // 1. Mock 短信通道
 // ==========================================
@@ -44,6 +49,10 @@ func (m *MockSender) SendSMS(phone, code, signName string) error {
 	fmt.Printf("💬 验证码内容: %s (5分钟内有效)\n", code)
 	fmt.Printf("============================================\n\n")
 	return nil
+}
+
+func (m *MockSender) QueryBalance() (string, error) {
+	return "99999 (模拟测试通道)", nil
 }
 
 // ==========================================
@@ -233,6 +242,108 @@ func (i *IhuyiSender) SendSMS(phone, code, signName string) error {
 	return nil
 }
 
+func (i *IhuyiSender) QueryBalance() (string, error) {
+	if i.APIID == "" || i.APIKEY == "" {
+		return "", fmt.Errorf("互亿无线短信参数未配置")
+	}
+
+	v := url.Values{}
+	v.Set("account", i.APIID)
+	v.Set("password", i.APIKEY)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.PostForm("https://api.ihuyi.com/sms/GetNum.json", v)
+	if err != nil {
+		return "", fmt.Errorf("请求互亿无线余额接口失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取互亿无线余额响应失败: %v", err)
+	}
+
+	var result struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+		Num  int    `json:"num"`
+	}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return "", fmt.Errorf("解析互亿无线余额响应失败: %v, body: %s", err, string(respBody))
+	}
+
+	if result.Code != 2 {
+		return "", fmt.Errorf("查询互亿无线余额失败: [%d] %s", result.Code, result.Msg)
+	}
+
+	return fmt.Sprintf("%d", result.Num), nil
+}
+
+// ==========================================
+// 5. 短信精灵通道 (282930.cn)
+// ==========================================
+type SmsJinglingSender struct {
+	UserID   string
+	Username string
+	Password string
+}
+
+func (s *SmsJinglingSender) SendSMS(phone, code, signName string) error {
+	if s.Username == "" || s.Password == "" {
+		return fmt.Errorf("短信精灵参数配置不完整")
+	}
+
+	v := url.Values{}
+	v.Set("username", s.Username)
+	v.Set("password", s.Password)
+	v.Set("mobiles", phone)
+	v.Set("content", fmt.Sprintf("【企业精灵】您的验证码是：%s", code))
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.PostForm("http://www.282930.cn/SMSReceiver.aspx", v)
+	if err != nil {
+		return fmt.Errorf("请求短信精灵发送接口失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("读取短信精灵响应数据失败: %v", err)
+	}
+
+	resultStr := strings.TrimSpace(string(respBody))
+	if !strings.HasPrefix(resultStr, "0") {
+		return fmt.Errorf("短信精灵发送失败，返回代码: %s", resultStr)
+	}
+
+	return nil
+}
+
+func (s *SmsJinglingSender) QueryBalance() (string, error) {
+	if s.Username == "" || s.Password == "" {
+		return "", fmt.Errorf("短信精灵配置不完整")
+	}
+
+	v := url.Values{}
+	v.Set("username", s.Username)
+	v.Set("password", s.Password)
+	v.Set("queryoddcount", "1")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.PostForm("http://www.282930.cn/SMSReceiver.aspx", v)
+	if err != nil {
+		return "", fmt.Errorf("请求短信精灵查询余额失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取短信精灵余额响应数据失败: %v", err)
+	}
+
+	return strings.TrimSpace(string(respBody)), nil
+}
+
 // ==========================================
 // 双层计费扣减与加权选择核心逻辑
 // ==========================================
@@ -391,6 +502,12 @@ func selectSMSProvider(ctx context.Context) (string, SMSSender, error) {
 			APIID:      chosen.Config["api_id"],
 			APIKEY:     chosen.Config["api_key"],
 			TemplateID: chosen.Config["template_id"],
+		}
+	case "sms_jingling":
+		sender = &SmsJinglingSender{
+			UserID:   chosen.Config["userid"],
+			Username: chosen.Config["username"],
+			Password: chosen.Config["password"],
 		}
 	default:
 		sender = &MockSender{

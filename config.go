@@ -52,13 +52,13 @@ port: 8080
 
 # MongoDB 数据库配置
 mongodb:
-  uri: "mongodb://wifi:PHeewwjYyWw43ZB5@10.10.10.230:26110/wifi"
+  uri: "mongodb://localhost:27017/wifi"
   db_name: "wifi"
 
 # Redis 缓存配置 (防刷限流与验证码、会话存储)
 redis:
-  addr: "10.10.10.230:6379"
-  password: "269898"
+  addr: "localhost:6379"
+  password: ""
   db: 0
 
 # 短信计费规则配置

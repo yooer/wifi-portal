@@ -122,7 +122,7 @@ func HandleAdminLogin(w http.ResponseWriter, r *http.Request) {
 
 func HandleAdminLogout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	// 从 Redis 彻底注销
 	tokenCookie, _ := r.Cookie("portal_saas_session")
 	if tokenCookie != nil {
@@ -544,6 +544,17 @@ func HandleSuperHotels(w http.ResponseWriter, r *http.Request) {
 		defer cursor.Close(ctx)
 		var list []Hotel
 		cursor.All(ctx, &list)
+
+		// 动态统计各酒店节点的流水分支指标
+		smsLogsColl := MongoDB.Collection("sms_logs")
+		authLogsColl := MongoDB.Collection("auth_logs")
+		for i := range list {
+			hId := list[i].HotelID
+			list[i].SMSCount, _ = smsLogsColl.CountDocuments(ctx, bson.M{"hotelId": hId})
+			list[i].SuccessCount, _ = authLogsColl.CountDocuments(ctx, bson.M{"hotelId": hId, "status": "success"})
+			list[i].BypassCount, _ = authLogsColl.CountDocuments(ctx, bson.M{"hotelId": hId, "status": "success_bypass"})
+		}
+
 		json.NewEncoder(w).Encode(list)
 
 	case http.MethodPost:
@@ -723,7 +734,7 @@ func HandleSuperSMSProviders(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"error":"通道ID不能为空，且发送权重必须在 1-10 之间"}`, http.StatusBadRequest)
 			return
 		}
-		
+
 		// 如果上传的 config 中 secret/key 是 "******"，说明用户没有修改它，需要从数据库中读取并保留原值
 		var existing SMSProvider
 		err = providersColl.FindOne(ctx, bson.M{"_id": p.ID}).Decode(&existing)
@@ -779,6 +790,92 @@ func HandleSuperSMSProviders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleSMSProviderBalance 超管查询指定通道余额接口
+func HandleSMSProviderBalance(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodGet {
+		http.Error(w, `{"error":"仅支持 GET 请求"}`, http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, `{"error":"缺少通道ID"}`, http.StatusBadRequest)
+		return
+	}
+	objID, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, `{"error":"通道ID格式错误"}`, http.StatusBadRequest)
+		return
+	}
+
+	providersColl := MongoDB.Collection("sms_providers")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var p SMSProvider
+	err = providersColl.FindOne(ctx, bson.M{"_id": objID}).Decode(&p)
+	if err != nil {
+		http.Error(w, `{"error":"通道未找到"}`, http.StatusNotFound)
+		return
+	}
+
+	// 实例化对应的发送接口
+	var sender SMSSender
+	switch p.Provider {
+	case "aliyun":
+		sender = &AliyunSender{
+			AccessKeyID:     p.Config["access_key_id"],
+			AccessKeySecret: p.Config["access_key_secret"],
+			SignName:        p.Config["sign_name"],
+			TemplateCode:    p.Config["template_code"],
+		}
+	case "tencent":
+		sender = &TencentSender{
+			SecretID:   p.Config["secret_id"],
+			SecretKey:  p.Config["secret_key"],
+			SDKAppID:   p.Config["sdk_app_id"],
+			SignName:   p.Config["sign_name"],
+			TemplateID: p.Config["template_id"],
+		}
+	case "ihuyi":
+		sender = &IhuyiSender{
+			APIID:      p.Config["api_id"],
+			APIKEY:     p.Config["api_key"],
+			TemplateID: p.Config["template_id"],
+		}
+	case "sms_jingling":
+		sender = &SmsJinglingSender{
+			UserID:   p.Config["userid"],
+			Username: p.Config["username"],
+			Password: p.Config["password"],
+		}
+	case "mock":
+		sender = &MockSender{
+			signName: p.Config["sign_name"],
+		}
+	default:
+		http.Error(w, `{"error":"不支持的通道类型"}`, http.StatusBadRequest)
+		return
+	}
+
+	querier, ok := sender.(BalanceQuerier)
+	if !ok {
+		http.Error(w, `{"error":"该通道类型暂不支持自动余额查询"}`, http.StatusBadRequest)
+		return
+	}
+
+	balance, err := querier.QueryBalance()
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"查询余量失败: %v"}`, err), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"balance": balance,
+	})
+}
+
 // HandleSuperRechargeManual 管理员手动充值余额/买套餐接口
 func HandleSuperRechargeManual(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -789,7 +886,7 @@ func HandleSuperRechargeManual(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		User        int64  `json:"user"`
-		Type        string `json:"type"` // "balance" | "package"
+		Type        string `json:"type"`   // "balance" | "package"
 		Amount      int64  `json:"amount"` // 分
 		SMSCount    int32  `json:"sms_count"`
 		PackageName string `json:"package_name"`
@@ -861,6 +958,17 @@ func HandleMerchantHotels(w http.ResponseWriter, r *http.Request) {
 		defer cursor.Close(ctx)
 		var list []Hotel
 		cursor.All(ctx, &list)
+
+		// 动态统计各酒店节点的流水分支指标
+		smsLogsColl := MongoDB.Collection("sms_logs")
+		authLogsColl := MongoDB.Collection("auth_logs")
+		for i := range list {
+			hId := list[i].HotelID
+			list[i].SMSCount, _ = smsLogsColl.CountDocuments(ctx, bson.M{"hotelId": hId})
+			list[i].SuccessCount, _ = authLogsColl.CountDocuments(ctx, bson.M{"hotelId": hId, "status": "success"})
+			list[i].BypassCount, _ = authLogsColl.CountDocuments(ctx, bson.M{"hotelId": hId, "status": "success_bypass"})
+		}
+
 		json.NewEncoder(w).Encode(list)
 
 	case http.MethodPost:
@@ -943,6 +1051,55 @@ func HandleMerchantHotels(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Write([]byte(`{"message":"酒店属性修改成功"}`))
+
+	case http.MethodDelete:
+		// 商户或超管物理删除其下酒店配置
+		hotelIdStr := r.URL.Query().Get("hotelId")
+		if hotelIdStr == "" {
+			http.Error(w, `{"error":"缺少必要删除参数 hotelId"}`, http.StatusBadRequest)
+			return
+		}
+
+		targetHotelId, err := strconv.ParseInt(hotelIdStr, 10, 32)
+		if err != nil {
+			http.Error(w, `{"error":"hotelId 格式不合法"}`, http.StatusBadRequest)
+			return
+		}
+
+		// 1. 查询该酒店记录是否存在
+		var existing Hotel
+		err = hotelsColl.FindOne(ctx, bson.M{"hotelId": int32(targetHotelId)}).Decode(&existing)
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, `{"error":"未找到对应酒店配置或已被他人删除"}`, http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, `{"error":"数据库查询故障"}`, http.StatusInternalServerError)
+			return
+		}
+
+		// 2. 权限校验：普通商户 (Level < 50) 只能删除其自身归属的酒店
+		if userLevel < 50 && existing.User != userAccount {
+			http.Error(w, `{"error":"越权警报！您无权删除不属于您账号归属下的酒店节点！"}`, http.StatusForbidden)
+			return
+		}
+
+		// 3. 物理删除酒店节点本身
+		_, err = hotelsColl.DeleteOne(ctx, bson.M{"hotelId": int32(targetHotelId)})
+		if err != nil {
+			http.Error(w, `{"error":"删除酒店主体失败"}`, http.StatusInternalServerError)
+			return
+		}
+
+		// 4. 同步级联物理删除该酒店对应的所有访客上网审计放行日志 auth_logs
+		_, err = MongoDB.Collection("auth_logs").DeleteMany(ctx, bson.M{"hotelId": int32(targetHotelId)})
+		if err != nil {
+			log.Printf("⚠️ 警告: 级联清除酒店 %d 对应的审计日志失败: %v", targetHotelId, err)
+		}
+
+		log.Printf("[%s] 🗑️ 级联物理销户: 操作账号 %d (Level %d) 删除了酒店 %d (%s) 及其全部审计日志",
+			time.Now().Format("2006-01-02 15:04:05"), userAccount, userLevel, targetHotelId, existing.Name)
+
+		w.Write([]byte(`{"message":"酒店配置及其全部上网审计日志已成功级联清除！"}`))
 
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -1156,18 +1313,29 @@ func HandleMerchantSMSLogs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(list)
 }
 
-// HandleMerchantRechargeRecords 查询商户的充值记录明细
+// HandleMerchantRechargeRecords 查询商户的充值记录明细 (如果是超级管理员，放开过滤，返回全网最新 200 条流水)
 func HandleMerchantRechargeRecords(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	userAccountStr := r.Header.Get("X-User-Account")
 	userAccount, _ := strconv.ParseInt(userAccountStr, 10, 64)
+	userLevelStr := r.Header.Get("X-User-Level")
+	userLevel, _ := strconv.Atoi(userLevelStr)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	filter := bson.M{"user": userAccount}
+	limit := int64(50)
+
+	// 如果是超级管理员，免除 user 过滤，直接查出全网最新的 50 条充值流水
+	if userLevel >= 50 {
+		filter = bson.M{}
+		limit = 200
+	}
+
 	logCursor, err := MongoDB.Collection("recharge").Find(ctx,
-		bson.M{"user": userAccount},
-		options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(50),
+		filter,
+		options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(limit),
 	)
 	if err != nil {
 		http.Error(w, `{"error":"查询充值流水分支失败"}`, http.StatusInternalServerError)
@@ -1175,7 +1343,11 @@ func HandleMerchantRechargeRecords(w http.ResponseWriter, r *http.Request) {
 	}
 	defer logCursor.Close(ctx)
 
-	var list []Recharge
-	logCursor.All(ctx, &list)
+	list := make([]Recharge, 0)
+	if err = logCursor.All(ctx, &list); err != nil {
+		http.Error(w, `{"error":"解析充值对账流水失败"}`, http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(list)
 }

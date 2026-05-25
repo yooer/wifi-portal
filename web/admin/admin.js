@@ -353,10 +353,14 @@ function renderHotels() {
             <td><code class="code-highlight">${escapeHTML(h.custom_name || '-')}</code></td>
             <td>${bypassBadge}</td>
             <td class="text-truncate" style="max-width: 160px;" title="${escapeHTML(h.welcome_text)}">${escapeHTML(h.welcome_text)}</td>
+            <td><span class="badge" style="background: rgba(9, 132, 227, 0.05); border-color: rgba(9, 132, 227, 0.15); color: #0984e3; font-weight: 600;">${h.sms_send_count || 0} 次</span></td>
+            <td><span class="badge" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">${h.auth_success_count || 0} 次</span></td>
+            <td><span class="badge" style="background: rgba(108, 92, 203, 0.05); border-color: rgba(108, 92, 203, 0.15); color: #6c5ce7; font-weight: 600;">${h.auth_bypass_count || 0} 次</span></td>
             <td>${h.user}</td>
             <td>${h.status === 1 ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">● 启用</span>' : '<span class="badge" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); color: var(--error-glow);">● 禁用</span>'}</td>
             <td>
                 <button class="btn-sm" onclick="openEditHotelModal(${h.hotelId})">⚙️ 编辑配置</button>
+                <button class="btn-sm btn-danger" onclick="deleteHotel(${h.hotelId})">🗑️ 删除</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -465,9 +469,14 @@ function renderAuditLogs() {
     tbody.innerHTML = '';
     pageItems.forEach(item => {
         const tr = document.createElement('tr');
-        const statusBadge = item.status === 'success' 
-            ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">放行成功</span>' 
-            : `<span class="badge" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); color: var(--error-glow);">拦截 (${escapeHTML(item.status)})</span>`;
+        let statusBadge = '';
+        if (item.status === 'success') {
+            statusBadge = '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">放行成功</span>';
+        } else if (item.status === 'success_bypass') {
+            statusBadge = '<span class="badge" style="background: rgba(108, 92, 203, 0.08); border-color: rgba(108, 92, 203, 0.25); color: #6c5ce7; font-weight: 600;">免密认证</span>';
+        } else {
+            statusBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); color: var(--error-glow);">拦截 (${escapeHTML(item.status)})</span>`;
+        }
             
         tr.innerHTML = `
             <td>${item.hotelId}</td>
@@ -843,8 +852,15 @@ async function loadSuperSMSProviders() {
                 'mock': '<span class="badge" style="background: rgba(100, 116, 139, 0.08); border-color: rgba(100, 116, 139, 0.25); color: var(--text-muted);">模拟通道 (Mock)</span>',
                 'aliyun': '<span class="badge" style="background: rgba(255, 118, 117, 0.08); border-color: rgba(255, 118, 117, 0.25); color: #ff7675;">阿里云短信 (Aliyun)</span>',
                 'tencent': '<span class="badge" style="background: rgba(9, 132, 227, 0.08); border-color: rgba(9, 132, 227, 0.25); color: #0984e3;">腾讯云短信 (Tencent)</span>',
-                'ihuyi': '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: #10b981;">互亿无线 (Ihuyi)</span>'
+                'ihuyi': '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: #10b981;">互亿无线 (Ihuyi)</span>',
+                'sms_jingling': '<span class="badge" style="background: rgba(162, 89, 255, 0.08); border-color: rgba(162, 89, 255, 0.25); color: #a259ff;">短信精灵 (Jingling)</span>'
             }[p.provider] || `<span class="badge">${p.provider}</span>`;
+
+            // 只有特定通道支持余额一键查询
+            let queryBalanceBtn = '';
+            if (p.provider === 'sms_jingling' || p.provider === 'ihuyi' || p.provider === 'mock') {
+                queryBalanceBtn = `<button class="btn-sm" style="background: rgba(16, 185, 129, 0.08); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);" onclick="querySMSProviderBalance('${p.id}', '${p.provider}')">💰 余额</button>`;
+            }
 
             tr.innerHTML = `
                 <td><strong>${typeBadge}</strong></td>
@@ -853,6 +869,7 @@ async function loadSuperSMSProviders() {
                 <td>${configHtml || '-'}</td>
                 <td>${formatTime(p.created_at)}</td>
                 <td>
+                    ${queryBalanceBtn}
                     <button class="btn-sm" onclick="openEditSMSProviderModal('${p.id}')">⚙️ 编辑</button>
                     <button class="btn-sm btn-danger" onclick="deleteSMSProvider('${p.id}')">🗑️ 物理删除</button>
                 </td>
@@ -893,6 +910,28 @@ window.toggleSMSProviderStatus = async function(id, checked) {
         }
     } catch (e) {
         showToast('❌ 网络连接错误', 'danger');
+    }
+};
+
+// 一键查询通道短信余额
+window.querySMSProviderBalance = async function(id, providerName) {
+    try {
+        const res = await fetch(`/api/admin/sms-providers/balance?id=${encodeURIComponent(id)}`);
+        const data = await res.json();
+        
+        const providerText = {
+            'sms_jingling': '短信精灵',
+            'ihuyi': '互亿无线',
+            'mock': '模拟通道'
+        }[providerName] || providerName;
+        
+        if (res.ok) {
+            alert(`💰 该 [${providerText}] 通道当前账户剩余短信：${data.balance} 条`);
+        } else {
+            alert(`⚠️ 查询失败: ${data.error}`);
+        }
+    } catch (e) {
+        showToast('❌ 网络连接错误，无法查询余额', 'danger');
     }
 };
 
@@ -1529,6 +1568,11 @@ function openAddSMSProviderModal() {
     document.getElementById('sms-config-ihuyi-apikey').placeholder = '输入密钥 (APIKEY)';
     document.getElementById('sms-config-ihuyi-tplid').value = '';
     
+    document.getElementById('sms-config-jingling-userid').value = '';
+    document.getElementById('sms-config-jingling-username').value = '';
+    document.getElementById('sms-config-jingling-password').value = '';
+    document.getElementById('sms-config-jingling-password').placeholder = '输入接口密码';
+    
     toggleSMSProviderConfigFields('mock');
     document.getElementById('modal-sms-provider').style.display = 'flex';
 }
@@ -1571,6 +1615,11 @@ window.openEditSMSProviderModal = function(id) {
         document.getElementById('sms-config-ihuyi-apikey').value = '';
         document.getElementById('sms-config-ihuyi-apikey').placeholder = '****** (留空表示不修改已有密钥)';
         document.getElementById('sms-config-ihuyi-tplid').value = cfg.template_id || '';
+    } else if (provider.provider === 'sms_jingling') {
+        document.getElementById('sms-config-jingling-userid').value = cfg.userid || '';
+        document.getElementById('sms-config-jingling-username').value = cfg.username || '';
+        document.getElementById('sms-config-jingling-password').value = '';
+        document.getElementById('sms-config-jingling-password').placeholder = '****** (留空表示不修改已有密码)';
     }
     
     document.getElementById('modal-sms-provider').style.display = 'flex';
@@ -1670,6 +1719,28 @@ async function saveSMSProvider() {
         config.api_id = apiid;
         config.api_key = apikey;
         config.template_id = tpl;
+    } else if (providerType === 'sms_jingling') {
+        const userid = document.getElementById('sms-config-jingling-userid').value.trim();
+        const username = document.getElementById('sms-config-jingling-username').value.trim();
+        let password = document.getElementById('sms-config-jingling-password').value;
+        
+        if (!username) {
+            showToast('⚠️ 请填写短信精灵账户名', 'danger');
+            return;
+        }
+        
+        if (!state.isEditingSMSProvider && !password) {
+            showToast('⚠️ 新建通道必须输入接口密码', 'danger');
+            return;
+        }
+        
+        if (state.isEditingSMSProvider && !password) {
+            password = "******";
+        }
+        
+        config.userid = userid;
+        config.username = username;
+        config.password = password;
     }
     
     const payload = {
@@ -1991,3 +2062,26 @@ window.deleteUser = async function(user) {
     }
 };
 
+// 商户或超级管理员物理删除酒店及其全部审计日志
+window.deleteHotel = async function(hotelId) {
+    if (!confirm(`⚠️ 警告：确定要彻底物理删除酒店配置 [ID: ${hotelId}] 吗？\n\n删除后将同步级联清理该酒店下产生的所有访客上网审计日志，此操作不可逆！`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/merchant/hotels?hotelId=${hotelId}`, {
+            method: 'DELETE'
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.error || '物理删除酒店失败');
+        }
+
+        showToast('🗑️ ' + (data.message || '酒店配置及相关审计日志已成功清理！'), 'success');
+        // 重新拉取酒店列表以刷新表格界面
+        await loadHotels();
+    } catch (err) {
+        showToast(err.message, 'danger');
+    }
+};

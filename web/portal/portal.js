@@ -27,8 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
             hotelIdStr = pathParts[hotelIdx + 1];
         }
     }
-    const ip = params.get("ip") || params.get("wlanuserip") || "";
-    const mac = params.get("mac") || "";
+    let ip = params.get("ip") || params.get("wlanuserip") || params.get("user_ip") || "";
+    let mac = params.get("mac") || params.get("user_mac") || "";
     const clientUrl = params.get("url") || params.get("dst") || "https://www.baidu.com";
 
     // 2. 映射页面元素
@@ -145,6 +145,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then(data => {
+                // 根据酒店接入的设备类型精确匹配和校正 IP / MAC 参数
+                const gwType = (data.gateway_type || "").toLowerCase();
+                if (gwType === "ikuai") {
+                    ip = params.get("user_ip") || ip;
+                    mac = params.get("mac") || mac;
+                } else if (gwType === "panabit") {
+                    ip = params.get("ip") || ip;
+                    mac = params.get("mac") || mac;
+                } else if (gwType === "mikrotik") {
+                    ip = params.get("ip") || params.get("wlanuserip") || ip;
+                    mac = params.get("mac") || mac;
+                }
+                console.log(`[Portal] 设备类型: ${gwType}, 精确匹配 IP: ${ip}, MAC: ${mac}`);
+
                 hotelNameEl.textContent = data.name || "WiFi 尊享连接";
                 welcomeTextEl.textContent = data.welcome_text || "连入专享无线网络";
                 

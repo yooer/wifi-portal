@@ -10,3 +10,8 @@ config.yaml
 # Whitelist compiled binaries requested by user
 !wifi.exe
 !wifi
+
+# Ignore all markdown files except the main README.md in tools/ikuai-portal
+*.md
+**/*.md
+!README.md

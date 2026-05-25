@@ -43,8 +43,11 @@ type Hotel struct {
 	SMSCooldown int32              `bson:"sms_cooldown" json:"sms_cooldown"`
 	IPCooldown  int32              `bson:"ip_cooldown" json:"ip_cooldown"`
 	MaxSendsDay int32              `bson:"max_sends_day" json:"max_sends_day"`
-	BypassAuth  int32              `bson:"bypass_auth" json:"bypass_auth"` // 0: 禁用免短信认证, 1: 启用免短信认证
-	CreatedAt   time.Time          `bson:"created_at" json:"created_at"`
+	BypassAuth   int32              `bson:"bypass_auth" json:"bypass_auth"` // 0: 禁用免短信认证, 1: 启用免短信认证
+	SMSCount     int64              `bson:"-" json:"sms_send_count"`
+	SuccessCount int64              `bson:"-" json:"auth_success_count"`
+	BypassCount  int64              `bson:"-" json:"auth_bypass_count"`
+	CreatedAt    time.Time          `bson:"created_at" json:"created_at"`
 }
 
 type User struct {

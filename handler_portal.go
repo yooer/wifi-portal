@@ -73,6 +73,7 @@ func HandlePortalConfig(w http.ResponseWriter, r *http.Request) {
 		"welcome_text": hotel.WelcomeText,
 		"status":       hotel.Status,
 		"bypass_auth":  hotel.BypassAuth,
+		"gateway_type": hotel.GatewayType,
 	}
 
 	json.NewEncoder(w).Encode(respData)
