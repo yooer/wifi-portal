@@ -22,6 +22,21 @@ go build -o wifi.exe .
 # 2. 本地 Linux 交叉编译
 $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o wifi .
 
-# 3. 运行服务
+# 3. 本地原生直接运行
 .\wifi.exe
+
+# 4. 运行安全引导程序生成随机凭证并自动生成 Docker 配置
+python bootstrap.py
+
+# 5. Docker Compose 一键启动生态 (MongoDB + Redis + App)
+docker-compose up -d
+
+# 6. 查看 Docker App 运行及验证码日志
+docker-compose logs -f wifi-portal
+
+# 7. ⚠️ 针对 WiFi 业务服务单独重启（数据库不受干扰，会话不丢失）
+docker-compose restart wifi-portal
+
+# 8. 停止 Docker Compose 生态
+docker-compose down
 ```

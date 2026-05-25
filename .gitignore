@@ -5,6 +5,8 @@ ikuai-portal.exe
 
 # Local configs and dynamic logs
 config.yaml
+config.docker.yaml
+.env
 *.log
 
 # Whitelist compiled binaries requested by user

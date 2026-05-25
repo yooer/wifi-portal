@@ -61,6 +61,9 @@ tools/ikuai-portal/
 ├── handler_portal.go     # 网关重定向放行、OTP 验证码校验、快捷免认证 API 控制器
 ├── config.go             # YAML 配置文件高扩展解析器
 ├── config.yaml           # 本地数据库、Redis 与全局短信冷却参数配置文件
+├── Dockerfile            # [NEW] 多阶段容器镜像构建文件
+├── docker-compose.yaml   # [NEW] 容器化一键编排部署方案 (包含 App + MongoDB + Redis)
+├── config.docker.yaml    # [NEW] 专门适配 Docker 虚拟网络及凭证的安全配置文件
 ├── images/               # 核心功能界面高清截图目录
 └── web/                  # 静态资源前端包
     ├── admin/            # 苹果风格 SaaS 商户控制台与超管运营后台
@@ -140,6 +143,57 @@ chmod +x ./wifi
 | `./wifi server status` | **服务运行状态检测** | 智能读取 `wifi.pid` 文件，实时检测进程状态，如果服务未正常运行将自动清理残留进程标记。 |
 | `./wifi server log` | **实时追踪系统日志** | 相当于执行 `tail -f wifi.log`，支持实时滚屏查看系统运行及认证审计的详细日志。 |
 
+### 5. Docker 容器化安全部署 (推荐 🚀)
+
+> **🤝 特别鸣谢**：本系统的 Docker 容器化部署方案及基础编排配置由社区杰出开发者 [@ctfrookie](https://github.com/ctfrookie) 倾情贡献！
+
+本系统内置了开箱即用的 Docker 与 Docker Compose 运行支持，实现秒级高可用一键编排部署，完美免除了本地手动安装、配置 MongoDB 与 Redis 数据库依赖的繁琐步骤。
+
+为了保障工业级的绝对安全生产规范，本方案引入了 **Bootstrap（账密强随机生成与配置隔离）** 机制：
+1. **自动防泄漏（Git Ignore 保护）**：密码、盐值和敏感环境变量自动写入本地忽略规则，严防误提交至 GitHub 造成数据库泄露。
+2. **最小权限原则（Dedicated DB User）**：容器启动时会自动创建仅对业务数据库（`wifi` 库）具备读写特权的 `wifi` 专用子账户进行 Go 后端读写，彻底废弃了高危的 `root` 超管直连权限。
+3. **秒级业务单服务重启**：完美支持在不重启底座数据库（MongoDB 和 Redis）的前提下，针对 WiFi 业务服务进行独立秒级重启。线上连网状态不丢失，业务完全零中断！
+
+---
+
+#### 第一步：运行引导脚本生成随机强凭证 (跨平台)
+
+在项目根目录下，直接运行安全引导程序：
+```bash
+python bootstrap.py
+```
+**引导程序执行后将自动完成以下安全步骤**：
+- 在本地自动生成 3 组各 32 位的高强度强随机密码（分别对应 MongoDB Root 密码、WiFi 专属子库密码及 Redis 访问密码）。
+- 自动在根目录下创建隔离的 `.env` 环境变量文件。
+- 自动读取 `config.docker.yaml.template` 模板文件，安全实例化好本地专属配置文件 `config.docker.yaml`。
+
+---
+
+#### 第二步：一键启动完整生态 (MongoDB 7.0 + Redis 7.0 + App)
+
+在项目根目录下直接执行：
+```bash
+# 1. 后台一键编排拉起全部服务 (App 容器将自动在数据库就绪并完成建库后才启动)
+docker-compose up -d
+
+# 2. 实时追踪 WiFi 系统运行、放行及验证码审计日志
+docker-compose logs -f wifi-portal
+
+# 3. 优雅停止并清理全部容器与网络生态
+docker-compose down
+```
+
+---
+
+#### 第三步：日常运维 - 针对 WiFi 业务的单服务重启 (高可用保证 🌟)
+
+当您在后续开发中修改了前端页面（`/web`）或 Go 后端代码重新编译并重新构建了镜像后，您可以**针对单个业务服务进行重启**。这能保证底座数据库（MongoDB/Redis）不间断运行，线上已验证的访客连网状态和 Session 会话完全零受损：
+
+```bash
+# ⚠️ 针对业务单独秒级零中断重启（仅重启 wifi-portal 业务容器，数据库服务不受任何干扰）
+docker-compose restart wifi-portal
+```
+
 ---
 
 ## 🔒 系统初始化账号
@@ -150,3 +204,9 @@ chmod +x ./wifi
 * **默认酒店商户 (Merchant)**  
   * 账号：`13803770377`  
   * 密码：`123456`
+
+---
+
+## 🤝 特别鸣谢
+
+感谢社区杰出开发者 [@ctfrookie](https://github.com/ctfrookie) 贡献了完整的 Docker & Docker Compose 容器化编排部署方案，极大地提升了项目的标准化极速部署体验与健壮性保障！
