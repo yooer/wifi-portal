@@ -4,12 +4,13 @@ services:
     image: mongo:7
     container_name: wifi-mongodb
     restart: unless-stopped
-    ports:
-      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: wifi2024secret
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh -u root -p wifi2024secret --quiet
       interval: 10s
       timeout: 5s
       retries: 5
@@ -18,12 +19,11 @@ services:
     image: redis:7-alpine
     container_name: wifi-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    command: redis-server --requirepass wifi2024secret
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "wifi2024secret", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

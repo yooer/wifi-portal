@@ -1,12 +1,12 @@
 port: 8080
 
 mongodb:
-  uri: "mongodb://mongodb:27017/wifi"
+  uri: "mongodb://root:wifi2024secret@mongodb:27017/wifi?authSource=admin"
   db_name: "wifi"
 
 redis:
   addr: "redis:6379"
-  password: ""
+  password: "wifi2024secret"
   db: 0
 
 sms:
