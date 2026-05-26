@@ -4,13 +4,16 @@ services:
     image: mongo:7
     container_name: wifi-mongodb
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: wifi2024secret
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-wifi@2026!}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-wifi_portal}
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh -u root -p wifi2024secret --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh -u ${MONGO_ROOT_USERNAME:-root} -p ${MONGO_ROOT_PASSWORD:-wifi@2026!} --quiet
       interval: 10s
       timeout: 5s
       retries: 5
@@ -19,11 +22,13 @@ services:
     image: redis:7-alpine
     container_name: wifi-redis
     restart: unless-stopped
-    command: redis-server --requirepass wifi2024secret
+    env_file:
+      - .env
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis@2026!}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "wifi2024secret", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis@2026!}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,16 +39,21 @@ services:
     container_name: wifi-portal
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"
     depends_on:
       mongodb:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./config.docker.yaml:/app/config.yaml
+    env_file:
+      - .env
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=${TZ:-Asia/Shanghai}
+      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME:-root}:${MONGO_ROOT_PASSWORD:-wifi@2026!}@mongodb:27017/${MONGO_DATABASE:-wifi_portal}?authSource=admin
+      - MONGO_DB_NAME=${MONGO_DATABASE:-wifi_portal}
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis@2026!}
+      - APP_PORT=${APP_PORT:-8080}
 
 volumes:
   mongodb_data:
