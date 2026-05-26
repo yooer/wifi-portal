@@ -156,8 +156,8 @@ chmod +x ./wifi
 `docker-compose.yaml` 包含 MongoDB + Redis + App 完整依赖，开箱即用。
 
 ```bash
-# 启动全部服务 (MongoDB + Redis + App)
-docker-compose up -d
+# 构建并启动全部服务 (MongoDB + Redis + App)
+docker-compose up -d --build
 
 # 查看日志
 docker-compose logs -f wifi-portal
