@@ -44,6 +44,7 @@ type Hotel struct {
 	IPCooldown  int32              `bson:"ip_cooldown" json:"ip_cooldown"`
 	MaxSendsDay int32              `bson:"max_sends_day" json:"max_sends_day"`
 	BypassAuth   int32              `bson:"bypass_auth" json:"bypass_auth"` // 0: 禁用免短信认证, 1: 启用免短信认证
+	SMSInstock   int32              `bson:"sms_instock" json:"sms_instock"` // 酒店可用短信库存量
 	SMSCount     int64              `bson:"-" json:"sms_send_count"`
 	SuccessCount int64              `bson:"-" json:"auth_success_count"`
 	BypassCount  int64              `bson:"-" json:"auth_bypass_count"`

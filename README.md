@@ -174,7 +174,7 @@ python bootstrap.py
 在项目根目录下直接执行：
 ```bash
 # 1. 后台一键编排拉起全部服务 (App 容器将自动在数据库就绪并完成建库后才启动)
-docker-compose up -d
+docker-compose up -d --build
 
 # 2. 实时追踪 WiFi 系统运行、放行及验证码审计日志
 docker-compose logs -f wifi-portal

@@ -85,6 +85,7 @@ func main() {
 
 	// SaaS 酒店商户专属接口 (RequireAuth 拦截)
 	http.HandleFunc("/api/merchant/hotels", GlobalAuth.RequireAuth(HandleMerchantHotels))
+	http.HandleFunc("/api/merchant/hotels/allocate-sms", GlobalAuth.RequireAuth(HandleMerchantAllocateSMS))
 	http.HandleFunc("/api/merchant/buy-package", GlobalAuth.RequireAuth(HandleMerchantBuyPackage))
 	http.HandleFunc("/api/merchant/auth-logs", GlobalAuth.RequireAuth(HandleMerchantAuthLogs))
 	http.HandleFunc("/api/merchant/sms-logs", GlobalAuth.RequireAuth(HandleMerchantSMSLogs))

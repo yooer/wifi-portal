@@ -173,11 +173,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 // 判断当前酒店是否开启了“二次免登快捷上网”功能
-                if (data.bypass_auth === 1) {
+                if (data.bypass_auth > 0) {
                     const savedPhone = localStorage.getItem(`wifi_bypass_phone_${hotelId}`) || getCookieValue(`wifi_bypass_phone_${hotelId}`);
                     const savedToken = localStorage.getItem(`wifi_bypass_token_${hotelId}`) || getCookieValue(`wifi_bypass_token_${hotelId}`);
+                    const savedExpires = localStorage.getItem(`wifi_bypass_expires_${hotelId}`);
+                    const isExpired = savedExpires && new Date().getTime() > parseInt(savedExpires, 10);
                     
-                    if (savedPhone && savedToken) {
+                    if (savedPhone && savedToken && !isExpired) {
                         phoneInput.value = savedPhone;
                         syncIosHeaderActionState();
                         
@@ -188,6 +190,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         setTimeout(() => {
                             autoBypassConnect(savedPhone, savedToken);
                         }, 1200);
+                    } else if (isExpired) {
+                        // 静默清理过期凭证
+                        localStorage.removeItem(`wifi_bypass_phone_${hotelId}`);
+                        localStorage.removeItem(`wifi_bypass_token_${hotelId}`);
+                        localStorage.removeItem(`wifi_bypass_expires_${hotelId}`);
                     }
                 }
             })
@@ -296,13 +303,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             showAlert("success", "验证成功！正在跳转至目标网络，请稍候...");
             
-            // 如果后端返回了免登凭证，则将其写入本地 localStorage 和加密 Cookie，有效期 30 天
+            // 如果后端返回了免登凭证，则将其写入本地 localStorage 和加密 Cookie，有效期依据后端动态传递的 bypass_days
             if (data.bypass_token && data.phone) {
+                const days = parseInt(data.bypass_days || 30, 10);
+                const expiresTime = new Date().getTime() + (days * 24 * 60 * 60 * 1000);
+                
                 localStorage.setItem(`wifi_bypass_phone_${hotelId}`, data.phone);
                 localStorage.setItem(`wifi_bypass_token_${hotelId}`, data.bypass_token);
+                localStorage.setItem(`wifi_bypass_expires_${hotelId}`, expiresTime);
                 
                 const expires = new Date();
-                expires.setTime(expires.getTime() + (30 * 24 * 60 * 60 * 1000));
+                expires.setTime(expiresTime);
                 document.cookie = `wifi_bypass_phone_${hotelId}=${data.phone};expires=${expires.toUTCString()};path=/`;
                 document.cookie = `wifi_bypass_token_${hotelId}=${data.bypass_token};expires=${expires.toUTCString()};path=/`;
             }
@@ -354,6 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // 清除无效或过期的凭证引导用户回落到传统短信验证
             localStorage.removeItem(`wifi_bypass_phone_${hotelId}`);
             localStorage.removeItem(`wifi_bypass_token_${hotelId}`);
+            localStorage.removeItem(`wifi_bypass_expires_${hotelId}`);
             document.cookie = `wifi_bypass_phone_${hotelId}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
             document.cookie = `wifi_bypass_token_${hotelId}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
             

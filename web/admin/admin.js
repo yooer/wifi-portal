@@ -130,6 +130,7 @@ function setupTabNavigation() {
 }
 
 function switchTab(tabName) {
+    window.switchTab = switchTab; // 显式暴露到全局作用域以适配 HTML onclick 原生调用
     state.activeTab = tabName;
     
     // 更新导航高亮
@@ -339,9 +340,16 @@ function renderHotels() {
             'mikrotik': '<span class="badge" style="background: rgba(225, 112, 85, 0.08); border-color: rgba(225, 112, 85, 0.25); color: #e17055;">MikroTik</span>'
         }[h.gateway_type] || `<span class="badge">${h.gateway_type}</span>`;
 
-        const bypassBadge = h.bypass_auth === 1 
-            ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">启用(30天)</span>'
-            : '<span class="badge" style="background: rgba(100, 116, 139, 0.08); border-color: rgba(100, 116, 139, 0.25); color: var(--text-muted);">禁用</span>';
+        let bypassBadge = '';
+        if (h.bypass_auth === 7) {
+            bypassBadge = '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">启用 (7天)</span>';
+        } else if (h.bypass_auth === 15) {
+            bypassBadge = '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">启用 (15天)</span>';
+        } else if (h.bypass_auth === 30 || h.bypass_auth === 1) {
+            bypassBadge = '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">启用 (30天)</span>';
+        } else {
+            bypassBadge = '<span class="badge" style="background: rgba(100, 116, 139, 0.08); border-color: rgba(100, 116, 139, 0.25); color: var(--text-muted);">禁用</span>';
+        }
         
         tr.innerHTML = `
             <td><strong>${h.hotelId}</strong></td>
@@ -350,14 +358,15 @@ function renderHotels() {
                 <button class="btn-sm" style="border-color: var(--primary-accent); color: var(--primary-accent); cursor: pointer;" onclick="copyPortalUrl(${h.hotelId})" title="点击复制对接 Portal URL">📋 地址</button>
             </td>
             <td>${driverBadge}</td>
-            <td><code class="code-highlight">${escapeHTML(h.custom_name || '-')}</code></td>
             <td>${bypassBadge}</td>
+            <td><span class="badge" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.25); color: #f59e0b; font-weight: 600;">${h.sms_instock || 0} 条</span></td>
             <td><span class="badge" style="background: rgba(9, 132, 227, 0.05); border-color: rgba(9, 132, 227, 0.15); color: #0984e3; font-weight: 600;">${h.sms_send_count || 0}次</span></td>
             <td><span class="badge" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">${h.auth_success_count || 0}次</span></td>
             <td><span class="badge" style="background: rgba(108, 92, 203, 0.05); border-color: rgba(108, 92, 203, 0.15); color: #6c5ce7; font-weight: 600;">${h.auth_bypass_count || 0}次</span></td>
             <td>${h.user}</td>
             <td>${h.status === 1 ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">●启用</span>' : '<span class="badge" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); color: var(--error-glow);">●禁用</span>'}</td>
             <td>
+                <button class="btn-sm" style="border-color: #f59e0b; color: #f59e0b;" onclick="openAllocateSMSModal(${h.hotelId})">💳 充值</button>
                 <button class="btn-sm" onclick="openEditHotelModal(${h.hotelId})">⚙️ 编辑</button>
                 <button class="btn-sm btn-danger" onclick="deleteHotel(${h.hotelId})">🗑️ 删除</button>
             </td>
@@ -398,7 +407,7 @@ async function loadPackagesShop() {
                 <h4>${escapeHTML(p.name)}</h4>
                 <div class="sms-amount">${p.sms_count} <span>条短信</span></div>
                 <div class="price">售价: <strong>${(p.price / 100).toFixed(2)}</strong> 元</div>
-                <p class="unit-price">折合 ${(p.price / p.sms_count).toFixed(2)} 分/条</p>
+                <p class="unit-price">折合 ${Number((p.price / p.sms_count / 100).toFixed(4))} 元/条</p>
                 <button class="btn-primary btn-block" onclick="buyPackage('${p.packageId}')">立即订购</button>
             `;
             grid.appendChild(card);
@@ -408,12 +417,29 @@ async function loadPackagesShop() {
     }
 }
 
+// 轻量级刷新全局酒店列表以支撑下拉过滤器渲染 (Bug 1 修复关键代码)
+async function fetchHotelsOnly() {
+    try {
+        const url = state.level >= 50 ? '/api/admin/hotels' : '/api/merchant/hotels';
+        const res = await fetch(url);
+        if (res.ok) {
+            state.hotels = await res.json();
+            updateHotelFilters(); // 刷新下拉选择过滤器
+        }
+    } catch (err) {
+        console.error('加载过滤酒店列表异常:', err);
+    }
+}
+
 // 3.4 连网放行审计日志
 async function loadAuditLogs() {
     const tbody = document.getElementById('audit-logs-table-body');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center">🔄 正在加载审计明细...</td></tr>';
     
     try {
+        // 【Bug 1 修复】确保下拉框已被正确填装最新的数据
+        await fetchHotelsOnly();
+        
         const res = await fetch('/api/merchant/auth-logs');
         if (!res.ok) throw new Error('加载放行日志失败');
         
@@ -500,6 +526,9 @@ async function loadSMSLogs() {
     tbody.innerHTML = '<tr><td colspan="9" class="text-center">🔄 加载短信详单...</td></tr>';
     
     try {
+        // 【Bug 1 修复】确保下拉框已被正确填装最新的数据
+        await fetchHotelsOnly();
+        
         const res = await fetch('/api/merchant/sms-logs');
         if (!res.ok) throw new Error('加载短信详单失败');
         
@@ -794,7 +823,7 @@ async function loadSuperPackages() {
             tr.innerHTML = `
                 <td><code>${escapeHTML(p.packageId)}</code></td>
                 <td><strong>${escapeHTML(p.name)}</strong></td>
-                <td>${p.price} 分 (${(p.price / 100).toFixed(2)} 元)</td>
+                <td><strong>${(p.price / 100).toFixed(2)}</strong> 元</td>
                 <td>${p.sms_count} 条</td>
                 <td>${p.status === 1 ? '<span class="badge" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: var(--accent-glow);">● 上架中</span>' : '<span class="badge" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); color: var(--error-glow);">● 已下架</span>'}</td>
                 <td>
@@ -977,9 +1006,11 @@ function setupEventListeners() {
         if (type === 'package') {
             document.getElementById('recharge-sms-group').style.display = 'block';
             document.getElementById('recharge-pkgname-group').style.display = 'block';
+            document.getElementById('recharge-amount-group').style.display = 'none'; // 【Bug 2/UX 优化】隐藏金额输入框
         } else {
             document.getElementById('recharge-sms-group').style.display = 'none';
             document.getElementById('recharge-pkgname-group').style.display = 'none';
+            document.getElementById('recharge-amount-group').style.display = 'block'; // 【Bug 2/UX 优化】显示金额输入框
         }
     });
     document.getElementById('btn-close-recharge-modal').addEventListener('click', () => {
@@ -1099,6 +1130,9 @@ function setupEventListeners() {
     if (btnRegisterSubmit) {
         btnRegisterSubmit.addEventListener('click', executeRegisterSubmit);
     }
+    
+    // 绑定酒店短信分配模态框事件监听
+    setupAllocateEventListeners();
 }
 
 // 4.1 登录操作
@@ -1363,6 +1397,8 @@ window.openRechargeModal = function(user) {
     document.getElementById('recharge-sms-input').value = '0';
     document.getElementById('recharge-pkgname-input').value = '系统手动充值';
     
+    // 【Bug 2/UX 优化】强制重置显隐以防上一次的状态残留
+    document.getElementById('recharge-amount-group').style.display = 'block';
     document.getElementById('recharge-sms-group').style.display = 'none';
     document.getElementById('recharge-pkgname-group').style.display = 'none';
     
@@ -1376,11 +1412,21 @@ async function saveManualRecharge() {
     const smsCount = parseInt(document.getElementById('recharge-sms-input').value, 10);
     const pkgName = document.getElementById('recharge-pkgname-input').value.trim();
     
-    const amountCents = parseInt(amountVal, 10);
-    
-    if (isNaN(amountCents) || amountCents <= 0) {
-        showToast('⚠️ 充值金额必须大于 0', 'danger');
-        return;
+    let amountCents = 0;
+    if (type === 'balance') {
+        // 【Bug 2/UX 优化】单独针对可用余额直充校验：将输入的元换算为分
+        const amountYuan = parseFloat(amountVal);
+        if (isNaN(amountYuan) || amountYuan <= 0) {
+            showToast('⚠️ 充值金额必须大于 0 元', 'danger');
+            return;
+        }
+        amountCents = Math.round(amountYuan * 100);
+    } else {
+        // 【Bug 2/UX 优化】单独针对短信条数增发校验：充值条数必大于 0，金额为 0
+        if (isNaN(smsCount) || smsCount <= 0) {
+            showToast('⚠️ 充值短信数必须大于 0 条', 'danger');
+            return;
+        }
     }
     
     const payload = {
@@ -1388,7 +1434,7 @@ async function saveManualRecharge() {
         type: type,
         amount: amountCents,
         sms_count: type === 'package' ? smsCount : 0,
-        package_name: type === 'package' ? pkgName : '系统注资账户余额'
+        package_name: type === 'package' ? (pkgName || '系统手工增发短信包') : '系统手工注资余额'
     };
     
     try {
@@ -1420,7 +1466,8 @@ window.openEditPackageModal = function(packageId) {
     document.getElementById('pkg-id-input').value = p.packageId;
     document.getElementById('pkg-id-input').disabled = true;
     document.getElementById('pkg-name-input').value = p.name;
-    document.getElementById('pkg-price-input').value = p.price;
+    // 【UX 优化】回显时自动将数据库中的分除以 100 转换回元进行展示
+    document.getElementById('pkg-price-input').value = (p.price / 100).toFixed(2);
     document.getElementById('pkg-sms-input').value = p.sms_count;
     
     document.getElementById('modal-package').style.display = 'flex';
@@ -1429,13 +1476,17 @@ window.openEditPackageModal = function(packageId) {
 async function savePackage() {
     const pkgId = document.getElementById('pkg-id-input').value.trim();
     const name = document.getElementById('pkg-name-input').value.trim();
-    const priceCents = parseInt(document.getElementById('pkg-price-input').value, 10);
+    const priceVal = document.getElementById('pkg-price-input').value.trim();
     const smsCount = parseInt(document.getElementById('pkg-sms-input').value, 10);
     
-    if (!pkgId || !name || isNaN(priceCents) || isNaN(smsCount)) {
+    const priceYuan = parseFloat(priceVal);
+    if (!pkgId || !name || isNaN(priceYuan) || isNaN(smsCount)) {
         showToast('⚠️ 套餐表单项必须完整填写', 'danger');
         return;
     }
+    
+    // 【UX 优化】保存时自动将输入的元乘以 100 四舍五入转换为分存储
+    const priceCents = Math.round(priceYuan * 100);
     
     const payload = {
         packageId: pkgId,
@@ -2080,3 +2131,63 @@ window.deleteHotel = async function(hotelId) {
         showToast(err.message, 'danger');
     }
 };
+
+// 打开酒店短信配额划拨模态框
+window.openAllocateSMSModal = function(hotelId) {
+    const hotel = state.hotels.find(h => h.hotelId === hotelId);
+    if (!hotel) return;
+    
+    document.getElementById('allocate-sms-hotel-id').value = hotelId;
+    document.getElementById('allocate-sms-hotel-name').value = `${hotel.name} (ID: ${hotelId})`;
+    document.getElementById('allocate-sms-count-input').value = 100;
+    
+    document.getElementById('modal-allocate-sms').style.display = 'flex';
+};
+
+// 注册按钮监听与关闭模态框
+function setupAllocateEventListeners() {
+    document.getElementById('btn-close-allocate-modal').addEventListener('click', () => {
+        document.getElementById('modal-allocate-sms').style.display = 'none';
+    });
+    
+    // 【UX 优化】点击模态框外部背景时自动关闭模态框
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('modal-allocate-sms');
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('btn-save-allocate').addEventListener('click', async () => {
+        const hotelId = parseInt(document.getElementById('allocate-sms-hotel-id').value, 10);
+        const count = parseInt(document.getElementById('allocate-sms-count-input').value, 10);
+        
+        if (!count || count <= 0) {
+            showToast('⚠️ 请输入大于 0 的有效充值条数', 'warning');
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/merchant/hotels/allocate-sms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hotelId, sms_count: count })
+            });
+            
+            const data = await res.json();
+            if (!res.ok) {
+                showToast(`❌ 分配失败: ${data.error || '系统错误'}`, 'danger');
+                return;
+            }
+            
+            showToast(`✅ 充值划拨成功！成功向酒店充入 ${data.allocated} 条短信配额。`, 'success');
+            document.getElementById('modal-allocate-sms').style.display = 'none';
+            
+            // 重新拉取大屏统计（更新顶部钱包）和酒店列表（刷新库存表格）
+            await loadDashboardStats();
+            await loadHotels();
+        } catch (err) {
+            showToast('❌ 请求发送失败，网络异常', 'danger');
+        }
+    });
+}

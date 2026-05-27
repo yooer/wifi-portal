@@ -348,7 +348,7 @@ func (s *SmsJinglingSender) QueryBalance() (string, error) {
 // 双层计费扣减与加权选择核心逻辑
 // ==========================================
 
-// SendSMSAndBill 核心双层扣费及高可用加权发送控制引擎
+// SendSMSAndBill 核心酒店层面扣费及高可用加权发送控制引擎
 func SendSMSAndBill(ctx context.Context, hotelId int32, phone, ip, code string) error {
 	// 1. 获取酒店信息
 	hotel, err := GetHotelByHotelID(ctx, hotelId)
@@ -363,42 +363,30 @@ func SendSMSAndBill(ctx context.Context, hotelId int32, phone, ip, code string) 
 	}
 
 	ownerUser := hotel.User
-	usersColl := MongoDB.Collection("users")
+	hotelsColl := MongoDB.Collection("hotels")
 
-	// 2. 双层原子扣费判定
-	billingType := "free"
-	var deductedCount int32 = 0
-	var deductedAmount int64 = 0
-
-	// 优先尝试原子扣减套餐 sms_count
-	res, err := usersColl.UpdateOne(ctx,
-		bson.M{"user": ownerUser, "sms_count": bson.M{"$gt": 0}},
-		bson.M{"$inc": bson.M{"sms_count": -1}},
+	// 2. 酒店层面可用库存原子扣减判定
+	// 仅当酒店拥有的 sms_instock > 0 时，原子减 1
+	res, err := hotelsColl.UpdateOne(ctx,
+		bson.M{"hotelId": hotelId, "sms_instock": bson.M{"$gt": 0}},
+		bson.M{"$inc": bson.M{"sms_instock": -1}},
 	)
-	if err == nil && res.ModifiedCount > 0 {
-		billingType = "package"
-		deductedCount = 1
-	} else {
-		// 套餐不足，尝试从余额 balance 中扣除 (单位: 分。单条单价配置在全局配置中)
-		price := int64(GlobalConfig.SMS.PricePerSMS)
-		res, err = usersColl.UpdateOne(ctx,
-			bson.M{"user": ownerUser, "balance": bson.M{"$gte": price}},
-			bson.M{"$inc": bson.M{"balance": -price}},
-		)
-		if err != nil || res.ModifiedCount == 0 {
-			// 两者都扣减失败，判定商户欠费
-			return fmt.Errorf("商户短信余额不足，验证码发送受限，请提醒商家充值")
-		}
-		billingType = "balance"
-		deductedAmount = price
-		deductedCount = 1
+	if err != nil {
+		return fmt.Errorf("扣除酒店短信库存数据库故障: %v", err)
 	}
+	if res.ModifiedCount == 0 {
+		return fmt.Errorf("当前酒店短信发送配额已耗尽，上网认证受限，请提醒商家分拨配额")
+	}
+
+	billingType := "hotel_package" // 酒店配额划扣
+	var deductedCount int32 = 1
+	var deductedAmount int64 = 0
 
 	// 3. 从数据库动态加载配置好的短信通道池进行加权分流
 	provider, sender, err := selectSMSProvider(ctx)
 	if err != nil {
-		// 回滚扣费事务
-		rollbackBilling(ctx, ownerUser, billingType, deductedAmount)
+		// 回滚酒店层面的库存
+		rollbackHotelBilling(ctx, hotelId)
 		return fmt.Errorf("短信平台无可用的发送通道: %v", err)
 	}
 
@@ -406,7 +394,7 @@ func SendSMSAndBill(ctx context.Context, hotelId int32, phone, ip, code string) 
 	err = sender.SendSMS(phone, code, "") // 留空将自动降级使用短信通道配置的预设签名，避免 WelcomeText 冲突
 	if err != nil {
 		// 发送失败，执行回滚退款
-		rollbackBilling(ctx, ownerUser, billingType, deductedAmount)
+		rollbackHotelBilling(ctx, hotelId)
 		log.Printf("[%s] ❌ 短信发送失败: [酒店ID: %d] 手机号: %s, 通道: %s, 验证码: %s, 扣费类型: %s, 错误: %v",
 			time.Now().Format("2006-01-02 15:04:05"), hotelId, phone, provider, code, billingType, err)
 		return fmt.Errorf("短信发送投递失败: %v", err)
@@ -426,16 +414,11 @@ func SendSMSAndBill(ctx context.Context, hotelId int32, phone, ip, code string) 
 	return nil
 }
 
-// 扣费事务回滚退款机制
-func rollbackBilling(ctx context.Context, user int64, billingType string, amount int64) {
-	usersColl := MongoDB.Collection("users")
-	if billingType == "package" {
-		usersColl.UpdateOne(ctx, bson.M{"user": user}, bson.M{"$inc": bson.M{"sms_count": 1}})
-		log.Printf("↩️ 短信发送失败，已原子退回 1 条套餐额度给商户 %d", user)
-	} else if billingType == "balance" {
-		usersColl.UpdateOne(ctx, bson.M{"user": user}, bson.M{"$inc": bson.M{"balance": amount}})
-		log.Printf("↩️ 短信发送失败，已原子退回 %.2f 元余额给商户 %d", float64(amount)/100.0, user)
-	}
+// 针对酒店的库存退回回滚
+func rollbackHotelBilling(ctx context.Context, hotelId int32) {
+	hotelsColl := MongoDB.Collection("hotels")
+	hotelsColl.UpdateOne(ctx, bson.M{"hotelId": hotelId}, bson.M{"$inc": bson.M{"sms_instock": 1}})
+	log.Printf("↩️ 短信发送失败，已原子退回 1 条可用配额至酒店 %d 的库存", hotelId)
 }
 
 // 加权随机选择路由通道算法

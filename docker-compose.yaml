@@ -11,7 +11,7 @@ services:
       MONGO_WIFI_PASSWORD: ${MONGO_WIFI_PASSWORD}
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh -u ${MONGO_ROOT_USER} -p ${MONGO_ROOT_PASSWORD} --quiet
       interval: 10s
@@ -33,7 +33,6 @@ services:
 
   wifi-portal:
     build: .
-    image: wifi-portal:latest
     container_name: wifi-portal
     restart: unless-stopped
     ports:

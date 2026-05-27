@@ -75,7 +75,7 @@ REDIS_PASSWORD={redis_password}
     print("------------------------------------------------------------------")
     print("[TIPS] 接下来您可以运行以下命令进行部署和维护：")
     print("  1. 启动全套服务 (App + MongoDB + Redis):")
-    print("     docker-compose up -d")
+    print("     docker-compose up -d --build")
     print("")
     print("  2. 查看实时 WiFi 验证与运行日志:")
     print("     docker-compose logs -f wifi-portal")

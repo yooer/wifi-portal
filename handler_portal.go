@@ -269,11 +269,17 @@ func HandleSMSReleaseVerify(w http.ResponseWriter, r *http.Request) {
 	hasher.Write([]byte(fmt.Sprintf("%s_%d_bypass_salt_93jf8", req.Phone, req.HotelID)))
 	bypassToken := hex.EncodeToString(hasher.Sum(nil))
 
-	respData := map[string]string{
+	days := hotel.BypassAuth
+	if days == 1 {
+		days = 30 // 兼容处理历史的 1 代表 30 天
+	}
+
+	respData := map[string]interface{}{
 		"status":       "success",
 		"redirect_url": redirectURL,
 		"phone":        req.Phone,
 		"bypass_token": bypassToken,
+		"bypass_days":  days,
 	}
 
 	json.NewEncoder(w).Encode(respData)
@@ -314,7 +320,7 @@ func calculateGatewayRedirect(hotel *Hotel, phone, mac, ip, clientURL string) (s
 		token := hex.EncodeToString(hasher.Sum(nil))
 
 		// 构建标准跳转参数 (URL-encode 各个属性，严控非法字符溢出)
-		redirectURL := fmt.Sprintf("https://portal.ikuai8-wifi.com/Action/webauth-up?type=20&user_id=1020004_%s&custom_name=%s&user_ip=%s&timestamp=%s&mac=%s&upload=0&download=0&token=%s&release_type=1",
+		redirectURL := fmt.Sprintf("http://portal.ikuai8-wifi.com/Action/webauth-up?type=20&user_id=1020004_%s&custom_name=%s&user_ip=%s&timestamp=%s&mac=%s&upload=0&download=0&token=%s&release_type=1",
 			phone,
 			url.QueryEscape(hotel.CustomName),
 			url.QueryEscape(ip),
@@ -422,9 +428,9 @@ func HandleSMSReleaseBypass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 2. 检查该酒店是否启用了免短信认证
-	if hotel.BypassAuth != 1 {
+	if hotel.BypassAuth == 0 {
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`{"error":"当前酒店未启用二次免短信快捷认脸上网功能，请进行短信验证。"}`))
+		w.Write([]byte(`{"error":"当前酒店未启用二次免短信快捷上网功能，请进行短信验证。"}`))
 		return
 	}
 

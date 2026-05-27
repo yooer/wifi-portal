@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- 登录模块 (亮色苹果风格) -->
     <div id="login-container" class="login-overlay">
@@ -23,15 +25,25 @@
             </div>
             <div class="login-alert" id="login-error" style="display:none;">⚠️ 账号或密码错误</div>
             <button id="btn-login" class="btn-primary">进入控制台</button>
-            <div class="login-links" style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 8px;">
+            <div class="login-links"
+                style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 8px;">
                 <span style="color: var(--text-muted);">没有商户账号？</span>
-                <a href="javascript:void(0)" id="link-goto-register" style="color: var(--primary-accent); text-decoration: none; font-weight: 600;">自助注册新账号 ➔</a>
+                <a href="javascript:void(0)" id="link-goto-register"
+                    style="color: var(--primary-accent); text-decoration: none; font-weight: 600;">自助注册新账号 ➔</a>
             </div>
-            
+
             <!-- Github 链接 -->
-            <div style="text-align: center; margin-top: 24px; font-size: 13px; border-top: 1px solid rgba(226, 232, 240, 0.8); padding-top: 12px;">
-                <a href="https://github.com/yooer/wifi-portal" target="_blank" style="color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-accent)'" onmouseout="this.style.color='var(--text-muted)'">
-                    <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+            <div
+                style="text-align: center; margin-top: 24px; font-size: 13px; border-top: 1px solid rgba(226, 232, 240, 0.8); padding-top: 12px;">
+                <a href="https://github.com/yooer/wifi-portal" target="_blank"
+                    style="color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;"
+                    onmouseover="this.style.color='var(--primary-accent)'"
+                    onmouseout="this.style.color='var(--text-muted)'">
+                    <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle;">
+                        <path
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                        </path>
+                    </svg>
                     <span>Github 项目源码</span>
                 </a>
             </div>
@@ -50,8 +62,10 @@
             <div class="form-group">
                 <label>验证码</label>
                 <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-                    <input type="number" id="reg-code" placeholder="6位数字" style="flex: 1; min-width: 0; margin-bottom: 0;">
-                    <button id="btn-reg-send-code" class="btn-secondary" style="font-size: 12px; padding: 12px 16px; white-space: nowrap; height: 100%;">获取验证码</button>
+                    <input type="number" id="reg-code" placeholder="6位数字"
+                        style="flex: 1; min-width: 0; margin-bottom: 0;">
+                    <button id="btn-reg-send-code" class="btn-secondary"
+                        style="font-size: 12px; padding: 12px 16px; white-space: nowrap; height: 100%;">获取验证码</button>
                 </div>
             </div>
             <div class="form-group">
@@ -62,10 +76,13 @@
                 <label>确认密码</label>
                 <input type="password" id="reg-confirm-password" placeholder="请再次输入密码">
             </div>
-            <div class="login-alert" id="reg-error" style="display:none; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); color: var(--error-glow);">⚠️ 账号或密码错误</div>
+            <div class="login-alert" id="reg-error"
+                style="display:none; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); color: var(--error-glow);">
+                ⚠️ 账号或密码错误</div>
             <button id="btn-register-submit" class="btn-primary">立即注册并登录</button>
             <div class="login-links" style="display: flex; justify-content: center; font-size: 13px; margin-top: 8px;">
-                <a href="javascript:void(0)" id="link-goto-login" style="color: var(--text-muted); text-decoration: none;">已有商户账号？立即登录控制台</a>
+                <a href="javascript:void(0)" id="link-goto-login"
+                    style="color: var(--text-muted); text-decoration: none;">已有商户账号？立即登录控制台</a>
             </div>
         </div>
     </div>
@@ -90,7 +107,7 @@
                 <button class="nav-item" data-tab="audit-logs">审计日志</button>
                 <button class="nav-item" data-tab="sms-logs">短信明细</button>
                 <button class="nav-item" data-tab="recharge-logs">账单记录</button>
-                
+
                 <!-- 超级管理员独享菜单 -->
                 <div class="admin-divider" id="admin-divider" style="display:none;"></div>
                 <button class="nav-item admin-only" data-tab="super-users" style="display:none;">商户账号</button>
@@ -116,11 +133,17 @@
                     <h2 id="tab-title">业务大屏</h2>
                     <p id="tab-subtitle">多节点负载均衡接口网关，确保服务高可用</p>
                 </div>
-                <div class="wallet-status">
+                <div class="wallet-status" style="align-items: center; gap: 20px;">
+                    <!-- 1. 前置绿渐变在线充值按钮 -->
+                    <div class="wallet-item" style="padding-right: 20px; border-right: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; height: 100%;">
+                        <button class="btn-primary" id="btn-online-recharge-placeholder" style="background: var(--primary-gradient); padding: 6px 14px; font-size: 11.5px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0, 191, 165, 0.15); height: 32px;" onclick="alert('⚡ 在线支付通道及免人工全自动充值系统对接中，敬请期待！')">💳 在线充值</button>
+                    </div>
+                    <!-- 2. 短信余量 -->
                     <div class="wallet-item">
                         <span class="label">短信余量</span>
                         <span class="value" id="wallet-sms">0 条</span>
                     </div>
+                    <!-- 3. 账户余额 -->
                     <div class="wallet-item" style="border-left: 1px solid var(--border-color); padding-left: 20px;">
                         <span class="label">账户余额</span>
                         <span class="value text-accent" id="wallet-balance">0.00 元</span>
@@ -131,19 +154,31 @@
             <!-- 选项卡内容区 -->
             <!-- 1. 业务大屏 -->
             <section class="tab-pane active" id="pane-dashboard">
-                <!-- 统计卡片 -->
+                <!-- 统计卡片 (点击可联动下钻至明细选项卡) -->
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>酒店节点总数</h3>
-                        <p id="stat-hotels">0 个</p>
+                    <!-- 1. 酒店卡片 -->
+                    <div class="stat-card stats-card-hotels" onclick="switchTab('hotels')">
+                        <div class="stat-icon bg-green">🏨</div>
+                        <div class="stat-details">
+                            <h3>酒店节点总数</h3>
+                            <p id="stat-hotels">0 个</p>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <h3>WiFi 连接次数</h3>
-                        <p id="stat-auths">0 次</p>
+                    <!-- 2. 连接数卡片 -->
+                    <div class="stat-card stats-card-auths" onclick="switchTab('audit-logs')">
+                        <div class="stat-icon bg-blue">📶</div>
+                        <div class="stat-details">
+                            <h3>WiFi 连接次数</h3>
+                            <p id="stat-auths">0 次</p>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <h3>累计发送验证码</h3>
-                        <p id="stat-sms">0 次</p>
+                    <!-- 3. 发送量卡片 -->
+                    <div class="stat-card stats-card-sms" onclick="switchTab('sms-logs')">
+                        <div class="stat-icon bg-purple">📩</div>
+                        <div class="stat-details">
+                            <h3>累计发送验证码</h3>
+                            <p id="stat-sms">0 次</p>
+                        </div>
                     </div>
                 </div>
 
@@ -158,8 +193,11 @@
                         </div>
                         <div class="announcement-content" style="margin-top: 16px;">
                             <p>欢迎使用 WiFi Captive Portal SaaS 计费运营系统。</p>
-                            <p><strong>1. 统一设备对接：</strong> 无论您的网关是爱快、Panabit 还是 MikroTik，都请在设备后台将“自定义 Portal URL”统一配置为：<code class="code-highlight" id="portal-config-url-example">http://[当前域名]/hotel/[您的HotelId]</code></p>
-                            <p><strong>2. 双层扣费体系：</strong> 系统会自动优先从您的【短信余量】扣除。当套餐用尽，会自动按照单价 0.06元/条（6分）扣除【账户余额】。当两者皆不足时，连网页面将拦截发送并提醒您充值。</p>
+                            <p><strong>1. 统一设备对接：</strong> 无论您的网关是爱快、Panabit 还是 MikroTik，都请在设备后台将“自定义 Portal
+                                URL”统一配置为：<code class="code-highlight"
+                                    id="portal-config-url-example">http://[当前域名]/hotel/[您的HotelId]</code></p>
+                            <p><strong>2. 双层扣费体系：</strong> 系统会自动优先从您的【短信余量】扣除。当套餐用尽，会自动按照单价
+                                0.06元/条（6分）扣除【账户余额】。当两者皆不足时，连网页面将拦截发送并提醒您充值。</p>
                         </div>
                     </div>
                 </div>
@@ -178,7 +216,10 @@
                     <div class="action-bar" style="margin-top: 16px;">
                         <div style="display: flex; align-items: center; gap: 16px; flex-grow: 1;">
                             <h3>网关节点明细</h3>
-                            <input type="text" id="hotel-search-input" placeholder="搜索酒店名称 / ID..." style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 13px; max-width: 260px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary-accent)'" onblur="this.style.borderColor='#cbd5e1'">
+                            <input type="text" id="hotel-search-input" placeholder="搜索酒店名称 / ID..."
+                                style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 13px; max-width: 260px; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='var(--primary-accent)'"
+                                onblur="this.style.borderColor='#cbd5e1'">
                         </div>
                         <button class="btn-primary" id="btn-add-hotel">＋ 新增酒店节点</button>
                     </div>
@@ -190,8 +231,8 @@
                                     <th>名称</th>
                                     <th>对接地址</th>
                                     <th>网关</th>
-                                    <th>标识</th>
                                     <th>免密</th>
+                                    <th>短信库存</th>
                                     <th>发送数</th>
                                     <th>成功数</th>
                                     <th>免密数</th>
@@ -203,8 +244,10 @@
                             <tbody id="hotels-table-body"></tbody>
                         </table>
                     </div>
-                    <div class="pagination-bar" id="hotels-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
-                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                    <div class="pagination-bar" id="hotels-pagination"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条
+                        </div>
                         <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
                     </div>
                 </div>
@@ -237,10 +280,14 @@
                     <div class="action-bar" style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
                             <h3>审计日志流水</h3>
-                            <select id="audit-hotel-filter" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;">
+                            <select id="audit-hotel-filter"
+                                style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;">
                                 <option value="">全部酒店</option>
                             </select>
-                            <input type="text" id="audit-search-input" placeholder="搜索手机号 / MAC / IP..." style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 13px; max-width: 280px; width: 100%; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary-accent)'" onblur="this.style.borderColor='#cbd5e1'">
+                            <input type="text" id="audit-search-input" placeholder="搜索手机号 / MAC / IP..."
+                                style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 13px; max-width: 280px; width: 100%; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='var(--primary-accent)'"
+                                onblur="this.style.borderColor='#cbd5e1'">
                         </div>
                     </div>
                     <div style="overflow-x: auto; margin-top: 16px;">
@@ -258,8 +305,10 @@
                             <tbody id="audit-logs-table-body"></tbody>
                         </table>
                     </div>
-                    <div class="pagination-bar" id="audit-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
-                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                    <div class="pagination-bar" id="audit-pagination"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条
+                        </div>
                         <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
                     </div>
                 </div>
@@ -278,7 +327,8 @@
                     <div class="action-bar" style="margin-top: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
                             <h3>短信明细流水</h3>
-                            <select id="sms-hotel-filter" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;">
+                            <select id="sms-hotel-filter"
+                                style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;">
                                 <option value="">全部酒店</option>
                             </select>
                         </div>
@@ -301,8 +351,10 @@
                             <tbody id="sms-logs-table-body"></tbody>
                         </table>
                     </div>
-                    <div class="pagination-bar" id="sms-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
-                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                    <div class="pagination-bar" id="sms-pagination"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条
+                        </div>
                         <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
                     </div>
                 </div>
@@ -334,8 +386,10 @@
                             <tbody id="recharge-logs-table-body"></tbody>
                         </table>
                     </div>
-                    <div class="pagination-bar" id="recharge-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
-                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条</div>
+                    <div class="pagination-bar" id="recharge-pagination"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                        <div style="font-size: 13px; color: var(--text-muted);" class="pagination-info">显示 0 到 0 条，共 0 条
+                        </div>
                         <div style="display: flex; gap: 6px;" class="pagination-buttons"></div>
                     </div>
                 </div>
@@ -393,7 +447,7 @@
                                 <tr>
                                     <th>套餐ID</th>
                                     <th>套餐名称</th>
-                                    <th>套餐价格 (分)</th>
+                                    <th>套餐价格 (元)</th>
                                     <th>获得短信数</th>
                                     <th>状态</th>
                                     <th>操作</th>
@@ -438,10 +492,17 @@
             </section>
 
             <!-- 页脚：持久显示于所有菜单页面底部 -->
-            <footer class="app-footer" style="text-align: center; padding: 24px 0 12px; font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 30px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+            <footer class="app-footer"
+                style="text-align: center; padding: 24px 0 12px; font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 30px; display: flex; justify-content: center; align-items: center; gap: 8px;">
                 <span>© 2026 Wifi-Portal. All rights reserved. </span>
-                <a href="https://github.com/yooer/wifi-portal" target="_blank" style="color: var(--primary-accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
-                    <svg height="14" width="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                <a href="https://github.com/yooer/wifi-portal" target="_blank"
+                    style="color: var(--primary-accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"
+                    onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                    <svg height="14" width="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle;">
+                        <path
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                        </path>
+                    </svg>
                     <span>Github</span>
                 </a>
             </footer>
@@ -481,22 +542,27 @@
             <div class="form-row-three" style="display: flex; gap: 12px; margin-bottom: 16px;">
                 <div class="form-group" style="flex: 1; min-width: 0; margin-bottom: 0;">
                     <label>短信冷却 (秒)</label>
-                    <input type="number" id="hotel-sms-cooldown-input" placeholder="默认60" value="60" style="width: 100%; min-width: 0;">
+                    <input type="number" id="hotel-sms-cooldown-input" placeholder="默认60" value="60"
+                        style="width: 100%; min-width: 0;">
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 0; margin-bottom: 0;">
                     <label>IP 冷却 (秒)</label>
-                    <input type="number" id="hotel-ip-cooldown-input" placeholder="默认60" value="60" style="width: 100%; min-width: 0;">
+                    <input type="number" id="hotel-ip-cooldown-input" placeholder="默认60" value="60"
+                        style="width: 100%; min-width: 0;">
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 0; margin-bottom: 0;">
                     <label>天发送上限 (次)</label>
-                    <input type="number" id="hotel-max-sends-day-input" placeholder="0为不限制" value="0" style="width: 100%; min-width: 0;">
+                    <input type="number" id="hotel-max-sends-day-input" placeholder="0为不限制" value="0"
+                        style="width: 100%; min-width: 0;">
                 </div>
             </div>
             <div class="form-group">
-                <label>二次免登快捷上网 (免验证码)</label>
+                <label>二次免密快捷上网 (免验证码)</label>
                 <select id="hotel-bypass-auth-select">
-                    <option value="0">禁用 - 每次必须输入手机验证码上网</option>
-                    <option value="1">启用 - 同设备及手机首次验证通过后30天免密免短信直连</option>
+                    <option value="0">禁用二次免密认证</option>
+                    <option value="7">启用7天免密快捷上网</option>
+                    <option value="15">启用15天免密快捷上网</option>
+                    <option value="30">启用30天免密快捷上网</option>
                 </select>
             </div>
             <div class="form-group">
@@ -545,13 +611,13 @@
             <div class="form-group">
                 <label>充值类型</label>
                 <select id="recharge-type-select">
-                    <option value="balance">仅充值其余额 (分/元)</option>
-                    <option value="package">商户订购指定套餐</option>
+                    <option value="balance">仅充值商户账户余额 (元)</option>
+                    <option value="package">仅充值商户短信包额度 (条)</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>充值金额 (分) [例如 10000 分代表 100 元]</label>
-                <input type="number" id="recharge-amount-input" placeholder="10000">
+            <div class="form-group" id="recharge-amount-group">
+                <label>充值金额 (元) [例如 100 代表充 100 元]</label>
+                <input type="number" id="recharge-amount-input" placeholder="100" step="0.01">
             </div>
             <div class="form-group" id="recharge-sms-group" style="display:none;">
                 <label>短信增发条数 (条)</label>
@@ -581,8 +647,8 @@
                 <input type="text" id="pkg-name-input" placeholder="黄金大容量套餐">
             </div>
             <div class="form-group">
-                <label>售价 (分) [例如 5000 代表 50元]</label>
-                <input type="number" id="pkg-price-input" placeholder="5000">
+                <label>售价 (元) [例如 50 代表 50元]</label>
+                <input type="number" id="pkg-price-input" placeholder="50" step="0.01">
             </div>
             <div class="form-group">
                 <label>充入短信额度 (条)</label>
@@ -622,7 +688,7 @@
                     <option value="0">0 - 禁用 (Disabled)</option>
                 </select>
             </div>
-            
+
             <!-- 动态配置区域，根据所选通道类型动态展示/切换对应字段 -->
             <div class="sms-config-fields" id="sms-config-mock-fields">
                 <div class="form-group">
@@ -630,7 +696,7 @@
                     <input type="text" id="sms-config-mock-signname" placeholder="系统统一认证">
                 </div>
             </div>
-            
+
             <div class="sms-config-fields" id="sms-config-aliyun-fields" style="display:none;">
                 <div class="form-group">
                     <label>AccessKey ID (access_key_id)</label>
@@ -649,7 +715,7 @@
                     <input type="text" id="sms-config-aliyun-tplcode" placeholder="SMS_...">
                 </div>
             </div>
-            
+
             <div class="sms-config-fields" id="sms-config-tencent-fields" style="display:none;">
                 <div class="form-group">
                     <label>Secret ID (secret_id)</label>
@@ -689,9 +755,11 @@
             </div>
 
             <div class="sms-config-fields" id="sms-config-sms_jingling-fields" style="display:none;">
-                <div style="background: rgba(162, 89, 255, 0.05); border-left: 4px solid #a259ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; width: 100%;">
+                <div
+                    style="background: rgba(162, 89, 255, 0.05); border-left: 4px solid #a259ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; width: 100%;">
                     <span>👉 还没有账号？立即前往注册：</span>
-                    <a href="https://www.282930.cn/" target="_blank" style="color: #a259ff; text-decoration: underline; font-weight: 600;">282930.cn ➔</a>
+                    <a href="https://www.282930.cn/" target="_blank"
+                        style="color: #a259ff; text-decoration: underline; font-weight: 600;">282930.cn ➔</a>
                 </div>
                 <div class="form-group" style="width: 100%;">
                     <label>账户名 (username)</label>
@@ -702,7 +770,7 @@
                     <input type="password" id="sms-config-jingling-password" placeholder="输入接口密码，若留空且已有配置则不修改">
                 </div>
             </div>
-            
+
             <div class="modal-footer">
                 <button class="btn-secondary" id="btn-close-sms-provider-modal">取消</button>
                 <button class="btn-primary" id="btn-save-sms-provider">确认保存</button>
@@ -710,6 +778,40 @@
         </div>
     </div>
 
+    <!-- 6. 酒店短信充值划拨模态框 -->
+    <div class="modal" id="modal-allocate-sms" style="display:none;">
+        <div class="modal-content" style="max-width: 460px;">
+            <h3>🏢 酒店短信配额充值划拨</h3>
+            <input type="hidden" id="allocate-sms-hotel-id">
+
+            <div class="form-group">
+                <label>目标酒店</label>
+                <input type="text" id="allocate-sms-hotel-name" readonly
+                    style="background: #f1f5f9; color: #64748b; font-weight: 600; outline: none; border-color: #cbd5e1;">
+            </div>
+
+            <div class="form-group">
+                <label>划拨短信条数</label>
+                <input type="number" id="allocate-sms-count-input" placeholder="输入要分配的条数 (如 100)" min="1" value="100">
+            </div>
+
+            <div
+                style="background: rgba(245, 158, 11, 0.05); border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                <p style="margin: 0; font-weight: 600; color: #f59e0b; margin-bottom: 6px;">💡 智能余额分配规则：</p>
+                <p style="margin: 0 0 4px 0;">1. 优先扣除商户下拥有的【可用短信条数】直接分配。</p>
+                <p style="margin: 0 0 4px 0;">2. 条数不足时，系统将自动使用【现金余额】补足差额。</p>
+                <p style="margin: 0;">3. 现金仍不足时，会<strong>最大化扣空余额进行部分分配</strong>。</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-close-allocate-modal">取消</button>
+                <button class="btn-primary" id="btn-save-allocate"
+                    style="background: #f59e0b; border-color: #f59e0b;">确定充值</button>
+            </div>
+        </div>
+    </div>
+
     <script src="admin.js"></script>
 </body>
+
 </html>

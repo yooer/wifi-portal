@@ -893,8 +893,23 @@ func HandleSuperRechargeManual(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewDecoder(r.Body).Decode(&req)
 
-	if req.User == 0 || req.Amount <= 0 {
-		http.Error(w, `{"error":"参数格式有误"}`, http.StatusBadRequest)
+	// 【Bug 修复】充值安全条件隔离校验：防止商户号无效，充值余额或条数必大于 0
+	if req.User == 0 {
+		http.Error(w, `{"error":"商户账户无效"}`, http.StatusBadRequest)
+		return
+	}
+	if req.Type == "balance" {
+		if req.Amount <= 0 {
+			http.Error(w, `{"error":"充值余额金额必须大于 0"}`, http.StatusBadRequest)
+			return
+		}
+	} else if req.Type == "package" {
+		if req.SMSCount <= 0 {
+			http.Error(w, `{"error":"充值短信条数必须大于 0"}`, http.StatusBadRequest)
+			return
+		}
+	} else {
+		http.Error(w, `{"error":"非法的充值类型"}`, http.StatusBadRequest)
 		return
 	}
 
@@ -903,9 +918,13 @@ func HandleSuperRechargeManual(w http.ResponseWriter, r *http.Request) {
 
 	// 原子累加商户账户
 	usersColl := MongoDB.Collection("users")
-	updateDoc := bson.M{"$inc": bson.M{"balance": req.Amount}}
+	var updateDoc bson.M
 	if req.Type == "package" {
-		updateDoc = bson.M{"$inc": bson.M{"balance": req.Amount, "sms_count": req.SMSCount}}
+		// 【Bug 修复】当充值类型是 package 时，只原子累加短信条数，不影响余额
+		updateDoc = bson.M{"$inc": bson.M{"sms_count": req.SMSCount}}
+	} else {
+		// 当充值类型是 balance 时，只原子累加可用余额，不影响短信包条数
+		updateDoc = bson.M{"$inc": bson.M{"balance": req.Amount}}
 	}
 
 	res, err := usersColl.UpdateOne(ctx, bson.M{"user": req.User}, updateDoc)
@@ -991,6 +1010,17 @@ func HandleMerchantHotels(w http.ResponseWriter, r *http.Request) {
 			// 超级管理员创建时，若未指定归属商户，则默认绑定其自身账号
 			if input.User == 0 {
 				input.User = userAccount
+			} else {
+				// 【安全强校验】超级管理员指定的归属商户账号必须已在系统注册中存在
+				var m User
+				err := MongoDB.Collection("users").FindOne(ctx, bson.M{"user": input.User}).Decode(&m)
+				if err == mongo.ErrNoDocuments {
+					http.Error(w, `{"error":"指定的归属商户账号未在系统中注册，请先核实并创建该商户！"}`, http.StatusBadRequest)
+					return
+				} else if err != nil {
+					http.Error(w, `{"error":"验证商户数据库故障"}`, http.StatusInternalServerError)
+					return
+				}
 			}
 		}
 
@@ -1043,6 +1073,22 @@ func HandleMerchantHotels(w http.ResponseWriter, r *http.Request) {
 			"ip_cooldown":   input.IPCooldown,
 			"max_sends_day": input.MaxSendsDay,
 			"bypass_auth":   input.BypassAuth,
+		}
+
+		// 【新增验证与修改】只有超级管理员允许修改酒店的归属商户账号，且必须校验账号是否存在已注册
+		if userLevel >= 50 {
+			if input.User != 0 {
+				var m User
+				err := MongoDB.Collection("users").FindOne(ctx, bson.M{"user": input.User}).Decode(&m)
+				if err == mongo.ErrNoDocuments {
+					http.Error(w, `{"error":"目标归属商户账号在系统中未注册，请先创建或核对商户手机号！"}`, http.StatusBadRequest)
+					return
+				} else if err != nil {
+					http.Error(w, `{"error":"验证商户账号数据库故障"}`, http.StatusInternalServerError)
+					return
+				}
+				updateFields["user"] = input.User
+			}
 		}
 
 		_, err = hotelsColl.UpdateOne(ctx, bson.M{"hotelId": input.HotelID}, bson.M{"$set": updateFields})
@@ -1350,4 +1396,182 @@ func HandleMerchantRechargeRecords(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(list)
+}
+
+type AllocateSMSRequest struct {
+	HotelID  int32 `json:"hotelId"`
+	SMSCount int32 `json:"sms_count"`
+}
+
+// HandleMerchantAllocateSMS 商户划拨短信库存给特定酒店的接口 (支持现金余额智能补足与最大化购买，支持超管代扣代充)
+func HandleMerchantAllocateSMS(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"仅支持 POST 请求"}`))
+		return
+	}
+
+	// 1. 获取商户登录账号与权限等级
+	userAccountStr := r.Header.Get("X-User-Account")
+	userAccount, _ := strconv.ParseInt(userAccountStr, 10, 64)
+	userLevelStr := r.Header.Get("X-User-Level")
+	userLevel, _ := strconv.Atoi(userLevelStr)
+
+	var req AllocateSMSRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil || req.HotelID == 0 || req.SMSCount <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"分配数量或酒店ID无效"}`))
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 2. 水平越权校验：先根据 hotelId 查出酒店配置主体
+	hotelsColl := MongoDB.Collection("hotels")
+	var hotel Hotel
+	err = hotelsColl.FindOne(ctx, bson.M{"hotelId": req.HotelID}).Decode(&hotel)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":"该酒店不存在"}`))
+		return
+	}
+
+	// 如果当前操作者不是系统管理员，且该酒店的归属不是操作者本人，则触发越权拦截
+	if userLevel < 50 && hotel.User != userAccount {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"error":"您无权操作该酒店或酒店不存在"}`))
+		return
+	}
+
+	// 确定扣除资源的实际账户 (超管代扣扣酒店所属商户；商户划拨扣商户自身)
+	chargeUser := hotel.User
+
+	// 3. 读取被扣款商户当前最新的资产状况 (sms_count 与 balance)
+	usersColl := MongoDB.Collection("users")
+	var merchant User
+	err = usersColl.FindOne(ctx, bson.M{"user": chargeUser}).Decode(&merchant)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"查询商户账户资产失败"}`))
+		return
+	}
+
+	price := int64(GlobalConfig.SMS.PricePerSMS) // 单条短信单价 (分)
+	allocatedSMS := req.SMSCount                 // 期望划拨的短信条数
+	
+	var deductPackage int32 = 0
+	var deductBalance int64 = 0
+	var finalAllocated int32 = 0
+
+	// 4. 智能资源划扣逻辑核心算法
+	deficit := allocatedSMS - merchant.SMSCount
+	if deficit <= 0 {
+		// 场景一：商户包条数完全充足
+		finalAllocated = allocatedSMS
+		deductPackage = allocatedSMS
+		deductBalance = 0
+	} else {
+		// 场景二：条数不够，需动用现金余额补足
+		deductPackage = merchant.SMSCount // 扣空现存的所有短信包条数
+		
+		// 计算商户现金余额最大可支持购买多少条短信
+		maxBuyableFromBalance := int32(merchant.Balance / price)
+		
+		if maxBuyableFromBalance >= deficit {
+			// 商户现金余额非常充足，可完美覆盖差额
+			finalAllocated = allocatedSMS
+			deductBalance = int64(deficit) * price
+		} else {
+			// 商户现金余额不足以完全覆盖差额，尽最大可能完成分配 (余额能买多少买多少)
+			finalAllocated = merchant.SMSCount + maxBuyableFromBalance
+			deductBalance = int64(maxBuyableFromBalance) * price
+		}
+	}
+
+	// 5. 校验最终可分配的短信数是否大于 0
+	if finalAllocated <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"分配失败，目标账户短信条数与可用现金余额均不足以划拨 1 条短信"}`))
+		return
+	}
+
+	// 6. 原子扣减商户 (User) 资产 (利用乐观锁进行并发控制)
+	res, err := usersColl.UpdateOne(ctx,
+		bson.M{
+			"user":      chargeUser,
+			"sms_count": bson.M{"$gte": deductPackage},
+			"balance":   bson.M{"$gte": deductBalance},
+		},
+		bson.M{
+			"$inc": bson.M{
+				"sms_count": -deductPackage,
+				"balance":   -deductBalance,
+			},
+		},
+	)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"扣除商户账户资产数据库故障"}`))
+		return
+	}
+	if res.ModifiedCount == 0 {
+		// 并发冲突防御
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte(`{"error":"商户账户资产在高并发处理中发生了变动，请重新尝试划拨"}`))
+		return
+	}
+
+	// 7. 原子累加到目标酒店 (Hotel) 的可用库存 sms_instock 中
+	_, err = hotelsColl.UpdateOne(ctx,
+		bson.M{"hotelId": req.HotelID, "user": hotel.User},
+		bson.M{"$inc": bson.M{"sms_instock": finalAllocated}},
+	)
+	if err != nil {
+		// 回滚已扣减的商户资产，确保账目百分之百精确
+		usersColl.UpdateOne(ctx, bson.M{"user": chargeUser}, bson.M{
+			"$inc": bson.M{
+				"sms_count": deductPackage,
+				"balance":   deductBalance,
+			},
+		})
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"转入酒店库存数据库故障，已原子回滚您的账户配额与余额"}`))
+		return
+	}
+
+	// 8. 产生划拨对账记录
+	orderId := GenerateULID()
+	var packageName string
+	if deductBalance > 0 {
+		packageName = fmt.Sprintf("划拨短信至酒店: %s，其中包条数扣减 %d 条，现金余额购买 %d 条(花费 %.2f 元)",
+			hotel.Name, deductPackage, finalAllocated-deductPackage, float64(deductBalance)/100.0)
+	} else {
+		packageName = fmt.Sprintf("划拨短信至酒店: %s，扣除包条数 %d 条", hotel.Name, deductPackage)
+	}
+
+	rechargeDoc := Recharge{
+		OrderID:     orderId,
+		User:        chargeUser, // 计费记录记在被扣费商户名下
+		Type:        "allocate_hotel", // 标明是划拨至酒店
+		Amount:      deductBalance,    // 记录实际扣减现金分值
+		SMSCount:    finalAllocated,
+		PackageName: packageName,
+		CreatedAt:   time.Now(),
+	}
+	MongoDB.Collection("recharge").InsertOne(ctx, rechargeDoc)
+
+	log.Printf("[%s] 💰 智能划拨配额成功: 操作人 %d (Level %d) 为商户 %d 旗下酒店 %d 划拨 %d 条(消耗包 %d 条，现金购买 %d 条，花费金额 %d分)",
+		time.Now().Format("2006-01-02 15:04:05"), userAccount, userLevel, chargeUser, req.HotelID, finalAllocated, deductPackage, finalAllocated-deductPackage, deductBalance)
+
+	resp := map[string]interface{}{
+		"message":          "短信库存分配成功",
+		"hotelId":          req.HotelID,
+		"allocated":        finalAllocated,
+		"deduct_sms_count": deductPackage,
+		"deduct_balance":   deductBalance,
+	}
+	json.NewEncoder(w).Encode(resp)
 }
