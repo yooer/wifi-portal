@@ -16,4 +16,4 @@ config.docker.yaml
 # Ignore all markdown files except the main README.md in tools/ikuai-portal
 *.md
 **/*.md
-!README.md
+!/README.md
